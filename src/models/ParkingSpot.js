@@ -13,10 +13,22 @@ const parkingSpotSchema = new mongoose.Schema(
       //chỗ để xe loại x
       // cần khớp với vehicleType trong model Vehicle
       type: String,
-      enum: ['compact', 'standard', 'electric'], //có thể sửa thêm
+      enum: ['compact', 'standard', 'electric', 'motorcycle', 'truck'], //có thể sửa thêm
       required: true,
     },
-    floor: { type: Number },
+    status: {
+      type: String,
+      enum: ['available', 'occupied', 'reserved', 'maintenance'],
+      /*
+        available: có thể đặt, đỗ xe,
+        occupied: đã có xe đang đỗ,
+        reserved: đã được đặt trước/giữ chỗ,
+        maintenance: đang bảo trì
+      */
+      default: 'available',
+    },
+    isBookable: { type: Boolean, default: true },
+    floor: { type: Number }, // (optional) tầng số (ví dụ: 1, 2, 3, hoặc 4).
     wing: { type: String }, // (optional) khu vực hoặc cánh của bãi đỗ xe (ví dụ: "Cánh A", "Cánh B", hoặc "Khu Đông").
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
@@ -24,7 +36,8 @@ const parkingSpotSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-parkingSpotSchema.index({ parkingLotId: 1 });
+parkingSpotSchema.index({ parkingLotId: 1, spotNumber: 1 }, { unique: true }); // Đảm bảo spotNumber duy nhất trong mỗi bãi
+parkingSpotSchema.index({ parkingLotId: 1, status: 1 }); // Index để truy vấn nhanh số chỗ trống
 
 module.exports = mongoose.model(
   'ParkingSpot',

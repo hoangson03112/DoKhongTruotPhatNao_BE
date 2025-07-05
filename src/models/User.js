@@ -8,7 +8,14 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     name: { type: String },
     phone: { type: String },
-    role: { type: String, default: 'user' },
+    role: {
+      type: String,
+      enum: ['user', 'admin', 'parking_owner', 'staff'], // Thêm 'parking_owner' và 'staff'
+      default: 'user',
+    },
+    avatar: { type: String },
+    refreshToken: { type: String },
+    lastLogin: { type: Date, default: Date.now },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
   },
@@ -16,5 +23,4 @@ const userSchema = new mongoose.Schema(
 );
 
 const User = mongoose.model('User', userSchema, 'users');
-
 module.exports = User;
