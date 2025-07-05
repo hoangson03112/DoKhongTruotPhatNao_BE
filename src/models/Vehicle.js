@@ -16,8 +16,12 @@ const vehicleSchema = new mongoose.Schema(
     vehicleType: {
       //loại xe
       type: String,
-      enum: ['compact', 'standard', 'electric'], //có thể sửa thêm
+      enum: ['compact', 'standard', 'electric', 'motorcycle', 'truck'], //có thể sửa thêm
       required: true,
+    },
+    color: { type: String },
+    imageUrl: {
+      type: String,
     },
     brand: { type: String }, //hãng xe
     model: { type: String }, //mẫu xe của phương tiện
