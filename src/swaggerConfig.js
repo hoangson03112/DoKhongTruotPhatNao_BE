@@ -1,0 +1,3571 @@
+// src/config/swaggerConfig.js
+
+// Lấy biến môi trường. Đảm bảo bạn đã cài đặt và cấu hình dotenv nếu dùng .env
+require('dotenv').config();
+
+const swaggerConfig = {
+  openapi: '3.0.0',
+  info: {
+    title: 'Parking Management System API',
+    version: '1.0.0',
+    description:
+      'API Documentation for Parking Management System, built with Node.js, Express, and MongoDB.',
+    contact: {
+      name: "DoKhongTruotPhatNao's Team",
+      url: 'http://your-website.com',
+      email: 'your.email@example.com',
+    },
+  },
+  servers: [],
+  components: {
+    securitySchemes: {
+      BearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: "Enter your JWT token in the format 'Bearer TOKEN'",
+      },
+    },
+    schemas: {
+      User: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcde',
+          },
+          username: {
+            type: 'string',
+            example: 'john_doe',
+          },
+          email: {
+            type: 'string',
+            format: 'email',
+            example: 'john.doe@example.com',
+          },
+          role: {
+            type: 'string',
+            enum: ['user', 'admin', 'parking_owner', 'staff'],
+            example: 'user',
+          },
+          name: {
+            type: 'string',
+            example: 'John Doe',
+            nullable: true,
+          },
+          phone: {
+            type: 'string',
+            example: '+84912345678',
+            nullable: true,
+          },
+          avatar: {
+            type: 'string',
+            example: 'https://example.com/avatar.jpg',
+            nullable: true,
+          },
+          isDeleted: {
+            type: 'boolean',
+            example: false,
+          },
+          deletedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: null,
+          },
+        },
+        required: ['id', 'username', 'email', 'role', 'isDeleted'],
+      },
+      Booking: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcdf',
+          },
+          userId: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcde',
+          },
+          parkingSpotId: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcd0',
+          },
+          vehicleId: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcd1',
+          },
+          startTime: {
+            type: 'string',
+            format: 'date-time',
+            example: '2025-07-06T14:00:00.000Z',
+            nullable: true,
+          },
+          endTime: {
+            type: 'string',
+            format: 'date-time',
+            example: '2025-07-06T16:00:00.000Z',
+            nullable: true,
+          },
+          checkInTime: {
+            type: 'string',
+            format: 'date-time',
+            example: null,
+            nullable: true,
+          },
+          checkOutTime: {
+            type: 'string',
+            format: 'date-time',
+            example: null,
+            nullable: true,
+          },
+          status: {
+            type: 'string',
+            enum: ['pending', 'cancelled', 'completed'],
+            example: 'pending',
+          },
+          overtimeFee: {
+            type: 'number',
+            example: 0,
+          },
+          paymentId: {
+            type: 'string',
+            example: 'pay_123456789',
+            nullable: true,
+          },
+          isDeleted: {
+            type: 'boolean',
+            example: false,
+          },
+          deletedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: null,
+          },
+        },
+        required: [
+          'id',
+          'userId',
+          'parkingSpotId',
+          'vehicleId',
+          'status',
+          'isDeleted',
+        ],
+      },
+      ParkingLot: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcd2',
+          },
+          name: {
+            type: 'string',
+            example: 'Downtown Parking',
+          },
+          description: {
+            type: 'string',
+            example: 'A modern parking lot in the city center',
+            nullable: true,
+          },
+          address: {
+            type: 'string',
+            example: '123 Main St, Hanoi',
+          },
+          location: {
+            type: 'object',
+            properties: {
+              type: {
+                type: 'string',
+                enum: ['Point'],
+                example: 'Point',
+              },
+              coordinates: {
+                type: 'array',
+                items: {
+                  type: 'number',
+                },
+                example: [105.8412, 21.0245],
+              },
+            },
+          },
+          totalSpots: {
+            type: 'number',
+            example: 100,
+          },
+          availableSpots: {
+            type: 'number',
+            example: 50,
+          },
+          imageUrls: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+            example: ['https://example.com/parking1.jpg'],
+            nullable: true,
+          },
+          contactPhone: {
+            type: 'string',
+            example: '+84912345678',
+            nullable: true,
+          },
+          contactEmail: {
+            type: 'string',
+            example: 'contact@parking.com',
+            nullable: true,
+          },
+          hourlyRate: {
+            type: 'number',
+            example: 10000,
+          },
+          ownerId: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcde',
+            nullable: true,
+          },
+          openingHours: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                dayOfWeek: {
+                  type: 'number',
+                  example: 0,
+                },
+                openTime: {
+                  type: 'string',
+                  example: '07:00',
+                },
+                closeTime: {
+                  type: 'string',
+                  example: '22:00',
+                },
+                isClosed: {
+                  type: 'boolean',
+                  example: false,
+                },
+              },
+            },
+          },
+          isDeleted: {
+            type: 'boolean',
+            example: false,
+          },
+          deletedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: null,
+          },
+        },
+        required: [
+          'id',
+          'name',
+          'address',
+          'location',
+          'totalSpots',
+          'availableSpots',
+          'hourlyRate',
+          'isDeleted',
+        ],
+      },
+      PersonalNotification: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcd4',
+          },
+          userId: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcde',
+          },
+          title: {
+            type: 'string',
+            example: 'Booking Confirmation',
+          },
+          message: {
+            type: 'string',
+            example: 'Your booking has been confirmed!',
+          },
+          type: {
+            type: 'string',
+            enum: [
+              'booking_confirmation',
+              'booking_reminder',
+              'booking_cancellation',
+              'payment_success',
+              'payment_failed',
+              'staff_reply',
+              'system_alert',
+            ],
+            example: 'booking_confirmation',
+          },
+          status: {
+            type: 'string',
+            enum: ['new', 'sent', 'read', 'failed'],
+            example: 'new',
+          },
+          relatedId: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcdf',
+            nullable: true,
+          },
+          read: {
+            type: 'boolean',
+            example: false,
+          },
+          link: {
+            type: 'string',
+            example: '/bookings/60d5f3a4b1234567890abcdf',
+            nullable: true,
+          },
+          isDeleted: {
+            type: 'boolean',
+            example: false,
+          },
+          deletedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: null,
+          },
+        },
+        required: [
+          'id',
+          'userId',
+          'title',
+          'message',
+          'type',
+          'status',
+          'read',
+          'isDeleted',
+        ],
+      },
+      BroadcastNotification: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcd5',
+          },
+          title: {
+            type: 'string',
+            example: 'New Promotion',
+          },
+          message: {
+            type: 'string',
+            example: 'Get 20% off your next booking!',
+          },
+          type: {
+            type: 'string',
+            enum: [
+              'promotion',
+              'system_update',
+              'general_announcement',
+              'parking_lot_news',
+            ],
+            example: 'promotion',
+          },
+          targetRoles: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['user', 'admin', 'parking_owner', 'staff'],
+            },
+            example: ['user'],
+          },
+          filters: {
+            type: 'object',
+            example: { city: 'Hanoi' },
+            nullable: true,
+          },
+          link: {
+            type: 'string',
+            example: '/promotions/123',
+            nullable: true,
+          },
+          sentAt: {
+            type: 'string',
+            format: 'date-time',
+            example: '2025-07-06T14:00:00.000Z',
+          },
+          expiresAt: {
+            type: 'string',
+            format: 'date-time',
+            example: '2025-07-13T14:00:00.000Z',
+            nullable: true,
+          },
+          isDeleted: {
+            type: 'boolean',
+            example: false,
+          },
+          deletedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: null,
+          },
+        },
+        required: [
+          'id',
+          'title',
+          'message',
+          'type',
+          'targetRoles',
+          'sentAt',
+          'isDeleted',
+        ],
+      },
+      UserBroadcastNotificationStatus: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcd6',
+          },
+          userId: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcde',
+          },
+          broadcastNotificationId: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcd5',
+          },
+          read: {
+            type: 'boolean',
+            example: false,
+          },
+          dismissedAt: {
+            type: 'string',
+            format: 'date-time',
+            example: null,
+            nullable: true,
+          },
+          isDeleted: {
+            type: 'boolean',
+            example: false,
+          },
+          deletedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: null,
+          },
+        },
+        required: [
+          'id',
+          'userId',
+          'broadcastNotificationId',
+          'read',
+          'isDeleted',
+        ],
+      },
+      Review: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcd7',
+          },
+          userId: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcde',
+          },
+          parkingLotId: {
+            type: 'string',
+            example: '60d5f3a4b1234567890abcd2',
+          },
+          rating: {
+            type: 'number',
+            example: 4,
+          },
+          comment: {
+            type: 'string',
+            example: 'Great parking lot, very convenient!',
+            nullable: true,
+          },
+          isDeleted: {
+            type: 'boolean',
+            example: false,
+          },
+          deletedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: null,
+          },
+        },
+        required: ['id', 'userId', 'parkingLotId', 'rating', 'isDeleted'],
+      },
+      Error: {
+        type: 'object',
+        properties: {
+          message: {
+            type: 'string',
+            example: 'Error message',
+          },
+          errors: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+            example: ['Field validation error'],
+            nullable: true,
+          },
+        },
+        required: ['message'],
+      },
+    },
+  },
+  security: [
+    {
+      BearerAuth: [],
+    },
+  ],
+  paths: {
+    '/auth/register': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'Register a new user (admin only for non-user roles)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  username: {
+                    type: 'string',
+                    example: 'john_doe',
+                  },
+                  email: {
+                    type: 'string',
+                    format: 'email',
+                    example: 'john.doe@example.com',
+                  },
+                  password: {
+                    type: 'string',
+                    format: 'password',
+                    example: 'Password123!',
+                  },
+                  role: {
+                    type: 'string',
+                    enum: ['user', 'admin', 'parking_owner', 'staff'],
+                    example: 'user',
+                    description:
+                      "Only admin can assign roles other than 'user'",
+                  },
+                  name: {
+                    type: 'string',
+                    example: 'John Doe',
+                    nullable: true,
+                  },
+                  phone: {
+                    type: 'string',
+                    example: '+84912345678',
+                    nullable: true,
+                  },
+                  avatar: {
+                    type: 'string',
+                    example: 'https://example.com/avatar.jpg',
+                    nullable: true,
+                  },
+                },
+                required: ['username', 'email', 'password'],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'User created successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/User',
+                    },
+                    token: {
+                      type: 'string',
+                      example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description:
+              'Validation error (e.g., missing fields, duplicate email/username)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['Email already exists'],
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (only admin can assign special roles)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: admin',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'Not authorized to access this route, no token provided',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/auth/login': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'Log in as an existing user',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  email: {
+                    type: 'string',
+                    format: 'email',
+                    example: 'john.doe@example.com',
+                  },
+                  password: {
+                    type: 'string',
+                    format: 'password',
+                    example: 'Password123!',
+                  },
+                },
+                required: ['email', 'password'],
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Successful login',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/User',
+                    },
+                    token: {
+                      type: 'string',
+                      example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (incorrect email/password)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Invalid email or password',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/auth/me': {
+      get: {
+        tags: ['Authentication'],
+        summary: "Get current user's profile",
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Current user's profile",
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/User',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/auth/logout': {
+      get: {
+        tags: ['Authentication'],
+        summary: 'Log out current user',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Successfully logged out',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    message: {
+                      type: 'string',
+                      example: 'Logged out successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/users/profile': {
+      get: {
+        tags: ['Users'],
+        summary: "Get the logged-in user's profile",
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "User's profile",
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/User',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+      patch: {
+        tags: ['Users'],
+        summary: "Update the logged-in user's profile",
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  username: {
+                    type: 'string',
+                    example: 'john_doe_new',
+                  },
+                  email: {
+                    type: 'string',
+                    format: 'email',
+                    example: 'john.new@example.com',
+                  },
+                  name: {
+                    type: 'string',
+                    example: 'John Doe Updated',
+                    nullable: true,
+                  },
+                  phone: {
+                    type: 'string',
+                    example: '+84987654321',
+                    nullable: true,
+                  },
+                  avatar: {
+                    type: 'string',
+                    example: 'https://example.com/new_avatar.jpg',
+                    nullable: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Updated user profile',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/User',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., duplicate email/username)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['Username already exists'],
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/users': {
+      get: {
+        tags: ['Users'],
+        summary: 'Get all users (admin only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: 'List of users',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/User',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not an admin)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: admin',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/users/{id}': {
+      delete: {
+        tags: ['Users'],
+        summary: 'Soft delete a user (admin only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcde',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'User soft deleted successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    message: {
+                      type: 'string',
+                      example: 'User soft deleted successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not an admin)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: admin',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+          404: {
+            description: 'User not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'User not found',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/parking-lots': {
+      post: {
+        tags: ['Parking Lots'],
+        summary: 'Create a new parking lot (admin or parking_owner only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: {
+                    type: 'string',
+                    example: 'Downtown Parking',
+                  },
+                  description: {
+                    type: 'string',
+                    example: 'A modern parking lot in the city center',
+                    nullable: true,
+                  },
+                  address: {
+                    type: 'string',
+                    example: '123 Main St, Hanoi',
+                  },
+                  location: {
+                    type: 'object',
+                    properties: {
+                      type: {
+                        type: 'string',
+                        enum: ['Point'],
+                        example: 'Point',
+                      },
+                      coordinates: {
+                        type: 'array',
+                        items: {
+                          type: 'number',
+                        },
+                        example: [105.8412, 21.0245],
+                      },
+                    },
+                  },
+                  totalSpots: {
+                    type: 'number',
+                    example: 100,
+                  },
+                  availableSpots: {
+                    type: 'number',
+                    example: 100,
+                  },
+                  imageUrls: {
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                    },
+                    example: ['https://example.com/parking1.jpg'],
+                    nullable: true,
+                  },
+                  contactPhone: {
+                    type: 'string',
+                    example: '+84912345678',
+                    nullable: true,
+                  },
+                  contactEmail: {
+                    type: 'string',
+                    example: 'contact@parking.com',
+                    nullable: true,
+                  },
+                  hourlyRate: {
+                    type: 'number',
+                    example: 10000,
+                  },
+                  openingHours: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        dayOfWeek: {
+                          type: 'number',
+                          example: 0,
+                        },
+                        openTime: {
+                          type: 'string',
+                          example: '07:00',
+                        },
+                        closeTime: {
+                          type: 'string',
+                          example: '22:00',
+                        },
+                        isClosed: {
+                          type: 'boolean',
+                          example: false,
+                        },
+                      },
+                    },
+                  },
+                },
+                required: [
+                  'name',
+                  'address',
+                  'location',
+                  'totalSpots',
+                  'availableSpots',
+                  'hourlyRate',
+                ],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Parking lot created successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/ParkingLot',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., missing fields)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['Name is required'],
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not admin or parking_owner)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: admin, parking_owner',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+      get: {
+        tags: ['Parking Lots'],
+        summary: 'Get all parking lots (public)',
+        responses: {
+          200: {
+            description: 'List of all parking lots',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/ParkingLot',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/parking-lots/my': {
+      get: {
+        tags: ['Parking Lots'],
+        summary:
+          'Get parking lots owned by the logged-in user (parking_owner only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: 'List of owned parking lots',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/ParkingLot',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not parking_owner)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: parking_owner',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/parking-lots/{id}': {
+      get: {
+        tags: ['Parking Lots'],
+        summary: 'Get parking lot by ID (public)',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcd2',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Parking lot details',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/ParkingLot',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Parking lot not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Parking lot not found',
+                },
+              },
+            },
+          },
+        },
+      },
+      patch: {
+        tags: ['Parking Lots'],
+        summary: 'Update parking lot by ID (admin or parking_owner only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcd2',
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: {
+                    type: 'string',
+                    example: 'Downtown Parking Updated',
+                  },
+                  description: {
+                    type: 'string',
+                    example: 'Updated description',
+                    nullable: true,
+                  },
+                  address: {
+                    type: 'string',
+                    example: '456 Main St, Hanoi',
+                  },
+                  location: {
+                    type: 'object',
+                    properties: {
+                      type: {
+                        type: 'string',
+                        enum: ['Point'],
+                        example: 'Point',
+                      },
+                      coordinates: {
+                        type: 'array',
+                        items: {
+                          type: 'number',
+                        },
+                        example: [105.842, 21.025],
+                      },
+                    },
+                  },
+                  totalSpots: {
+                    type: 'number',
+                    example: 120,
+                  },
+                  availableSpots: {
+                    type: 'number',
+                    example: 60,
+                  },
+                  imageUrls: {
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                    },
+                    example: ['https://example.com/parking_updated.jpg'],
+                    nullable: true,
+                  },
+                  contactPhone: {
+                    type: 'string',
+                    example: '+84987654321',
+                    nullable: true,
+                  },
+                  contactEmail: {
+                    type: 'string',
+                    example: 'new_contact@parking.com',
+                    nullable: true,
+                  },
+                  hourlyRate: {
+                    type: 'number',
+                    example: 12000,
+                  },
+                  openingHours: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        dayOfWeek: {
+                          type: 'number',
+                          example: 0,
+                        },
+                        openTime: {
+                          type: 'string',
+                          example: '06:00',
+                        },
+                        closeTime: {
+                          type: 'string',
+                          example: '23:00',
+                        },
+                        isClosed: {
+                          type: 'boolean',
+                          example: false,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Parking lot updated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/ParkingLot',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., invalid fields)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['Invalid coordinates'],
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not admin or parking_owner)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: admin, parking_owner',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Parking lot not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Parking lot not found',
+                },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ['Parking Lots'],
+        summary: 'Soft delete parking lot by ID (admin or parking_owner only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcd2',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Parking lot soft deleted successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    message: {
+                      type: 'string',
+                      example: 'Parking lot soft deleted successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Parking lot not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Parking lot not found',
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not admin or parking_owner)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: admin, parking_owner',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/bookings': {
+      post: {
+        tags: ['Bookings'],
+        summary: 'Create a new booking',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  parkingSpotId: {
+                    type: 'string',
+                    example: '60d5f3a4b1234567890abcd0',
+                  },
+                  vehicleId: {
+                    type: 'string',
+                    example: '60d5f3a4b1234567890abcd1',
+                  },
+                  startTime: {
+                    type: 'string',
+                    format: 'date-time',
+                    example: '2025-07-06T14:00:00.000Z',
+                    nullable: true,
+                  },
+                  endTime: {
+                    type: 'string',
+                    format: 'date-time',
+                    example: '2025-07-06T16:00:00.000Z',
+                    nullable: true,
+                  },
+                },
+                required: ['parkingSpotId', 'vehicleId'],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Booking created successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/Booking',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        400: {
+          description:
+            'Validation error (e.g., invalid parking spot or vehicle)',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error',
+              },
+              example: {
+                message: 'Validation error',
+                errors: ['Parking spot is not available'],
+              },
+            },
+          },
+        },
+        401: {
+          description: 'Unauthorized (no or invalid token)',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error',
+              },
+              example: {
+                message: 'Not authorized to access this route, token failed',
+              },
+            },
+          },
+        },
+        404: {
+          description: 'Parking spot or vehicle not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error',
+              },
+              example: {
+                message: 'Parking spot not found',
+              },
+            },
+          },
+        },
+      },
+      get: {
+        tags: ['Bookings'],
+        summary: 'Get all bookings (admin only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'status',
+            in: 'query',
+            description: 'Filter by booking status',
+            schema: {
+              type: 'string',
+              enum: ['pending', 'cancelled', 'completed'],
+              example: 'pending',
+            },
+          },
+          {
+            name: 'userId',
+            in: 'query',
+            description: 'Filter by user ID',
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcde',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'List of bookings',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Booking',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not admin)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: admin',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/bookings/my': {
+      get: {
+        tags: ['Bookings'],
+        summary: 'Get bookings of the logged-in user',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'status',
+            in: 'query',
+            description: 'Filter by booking status',
+            schema: {
+              type: 'string',
+              enum: ['pending', 'cancelled', 'completed'],
+              example: 'pending',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: "List of user's bookings",
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Booking',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/bookings/{id}': {
+      get: {
+        tags: ['Bookings'],
+        summary: 'Get booking by ID',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcdf',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Booking details',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/Booking',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Booking not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Booking not found',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+      patch: {
+        tags: ['Bookings'],
+        summary: 'Update booking by ID (user or admin only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcdf',
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  startTime: {
+                    type: 'string',
+                    format: 'date-time',
+                    example: '2025-07-06T15:00:00.000Z',
+                    nullable: true,
+                  },
+                  endTime: {
+                    type: 'string',
+                    format: 'date-time',
+                    example: '2025-07-06T17:00:00.000Z',
+                    nullable: true,
+                  },
+                  status: {
+                    type: 'string',
+                    enum: ['pending', 'cancelled', 'completed'],
+                    example: 'pending',
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Booking updated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/Booking',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., invalid time range)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['End time must be after start time'],
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Booking not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Booking not found',
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not the booking owner or admin)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'You are not authorized to update this booking',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ['Bookings'],
+        summary: 'Soft delete booking by ID (user or admin only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcdf',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Booking soft deleted successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    message: {
+                      type: 'string',
+                      example: 'Booking soft deleted successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Booking not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Booking not found',
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not the booking owner or admin)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'You are not authorized to delete this booking',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/bookings/{id}/check-in': {
+      patch: {
+        tags: ['Bookings'],
+        summary: 'Check-in for a booking (user or staff only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcdf',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Check-in successful',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/Booking',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description:
+              'Validation error (e.g., booking not in pending status)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Booking is not in pending status',
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Booking not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Booking not found',
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not the booking owner or staff)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'You are not authorized to check-in this booking',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/bookings/{id}/check-out': {
+      patch: {
+        tags: ['Bookings'],
+        summary: 'Check-out for a booking (user or staff only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcdf',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Check-out successful',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/Booking',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., booking not checked in)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Booking has not been checked in',
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Booking not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Booking not found',
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not the booking owner or staff)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'You are not authorized to check-out this booking',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/reviews': {
+      post: {
+        tags: ['Reviews'],
+        summary: 'Create a new review for a parking lot',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  parkingLotId: {
+                    type: 'string',
+                    example: '60d5f3a4b1234567890abcd2',
+                  },
+                  rating: {
+                    type: 'number',
+                    example: 4,
+                  },
+                  comment: {
+                    type: 'string',
+                    example: 'Great parking lot, very convenient!',
+                    nullable: true,
+                  },
+                },
+                required: ['parkingLotId', 'rating'],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Review created successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/Review',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., invalid rating)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['Rating must be between 1 and 5'],
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Parking lot not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Parking lot not found',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+      get: {
+        tags: ['Reviews'],
+        summary: 'Get all reviews (public)',
+        parameters: [
+          {
+            name: 'parkingLotId',
+            in: 'query',
+            description: 'Filter by parking lot ID',
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcd2',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'List of reviews',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Review',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/reviews/my': {
+      get: {
+        tags: ['Reviews'],
+        summary: 'Get reviews of the logged-in user',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "List of user's reviews",
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Review',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/reviews/{id}': {
+      get: {
+        tags: ['Reviews'],
+        summary: 'Get review by ID (public)',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcd7',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Review details',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/Review',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Review not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Review not found',
+                },
+              },
+            },
+          },
+        },
+      },
+      patch: {
+        tags: ['Reviews'],
+        summary: 'Update review by ID (user or admin only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcd7',
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  rating: {
+                    type: 'number',
+                    example: 5,
+                  },
+                  comment: {
+                    type: 'string',
+                    example: 'Updated: Excellent service!',
+                    nullable: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Review updated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/Review',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., invalid rating)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['Rating must be between 1 and 5'],
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Review not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Review not found',
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not the review owner or admin)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'You are not authorized to update this review',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ['Reviews'],
+        summary: 'Soft delete review by ID (user or admin only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcd7',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Review soft deleted successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    message: {
+                      type: 'string',
+                      example: 'Review soft deleted successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Review not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Review not found',
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not the review owner or admin)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'You are not authorized to delete this review',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/notifications/personal': {
+      post: {
+        tags: ['Notifications'],
+        summary: 'Create a personal notification (admin or staff only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  userId: {
+                    type: 'string',
+                    example: '60d5f3a4b1234567890abcde',
+                  },
+                  title: {
+                    type: 'string',
+                    example: 'Booking Confirmation',
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Your booking has been confirmed!',
+                  },
+                  type: {
+                    type: 'string',
+                    enum: [
+                      'booking_confirmation',
+                      'booking_reminder',
+                      'booking_cancellation',
+                      'payment_success',
+                      'payment_failed',
+                      'staff_reply',
+                      'system_alert',
+                    ],
+                    example: 'booking_confirmation',
+                  },
+                  relatedId: {
+                    type: 'string',
+                    example: '60d5f3a4b1234567890abcdf',
+                    nullable: true,
+                  },
+                  link: {
+                    type: 'string',
+                    example: '/bookings/60d5f3a4b1234567890abcdf',
+                    nullable: true,
+                  },
+                },
+                required: ['userId', 'title', 'message', 'type'],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Personal notification created successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/PersonalNotification',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., invalid user ID)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['Invalid user ID'],
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not admin or staff)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: admin, staff',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+      get: {
+        tags: ['Notifications'],
+        summary: 'Get personal notifications of the logged-in user',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'status',
+            in: 'query',
+            description: 'Filter by notification status',
+            schema: {
+              type: 'string',
+              enum: ['new', 'sent', 'read', 'failed'],
+              example: 'new',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'List of personal notifications',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/PersonalNotification',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/notifications/personal/{id}': {
+      get: {
+        tags: ['Notifications'],
+        summary: 'Get personal notification by ID',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcd4',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Personal notification details',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/PersonalNotification',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Notification not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Notification not found',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+      patch: {
+        tags: ['Notifications'],
+        summary: 'Update personal notification status (user or admin only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcd4',
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    enum: ['new', 'sent', 'read', 'failed'],
+                    example: 'read',
+                  },
+                },
+                required: ['status'],
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Notification status updated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/PersonalNotification',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., invalid status)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['Invalid notification status'],
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Notification not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Notification not found',
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not the notification owner or admin)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'You are not authorized to update this notification',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/notifications/broadcast': {
+      post: {
+        tags: ['Notifications'],
+        summary: 'Create a broadcast notification (admin only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: {
+                    type: 'string',
+                    example: 'New Promotion',
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Get 20% off your next booking!',
+                  },
+                  type: {
+                    type: 'string',
+                    enum: [
+                      'promotion',
+                      'system_update',
+                      'general_announcement',
+                      'parking_lot_news',
+                    ],
+                    example: 'promotion',
+                  },
+                  targetRoles: {
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                      enum: ['user', 'admin', 'parking_owner', 'staff'],
+                    },
+                    example: ['user'],
+                  },
+                  filters: {
+                    type: 'object',
+                    example: { city: 'Hanoi' },
+                    nullable: true,
+                  },
+                  link: {
+                    type: 'string',
+                    example: '/promotions/123',
+                    nullable: true,
+                  },
+                  expiresAt: {
+                    type: 'string',
+                    format: 'date-time',
+                    example: '2025-07-13T14:00:00.000Z',
+                    nullable: true,
+                  },
+                },
+                required: ['title', 'message', 'type', 'targetRoles'],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Broadcast notification created successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/BroadcastNotification',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., invalid target roles)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['Invalid target roles'],
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not admin)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: admin',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+      get: {
+        tags: ['Notifications'],
+        summary: 'Get all broadcast notifications (admin only)',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'type',
+            in: 'query',
+            description: 'Filter by notification type',
+            schema: {
+              type: 'string',
+              enum: [
+                'promotion',
+                'system_update',
+                'general_announcement',
+                'parking_lot_news',
+              ],
+              example: 'promotion',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'List of broadcast notifications',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/BroadcastNotification',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Forbidden (not admin)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message:
+                    'User role user is not authorized to access this route. Required roles: admin',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/notifications/broadcast/my': {
+      get: {
+        tags: ['Notifications'],
+        summary: 'Get broadcast notifications for the logged-in user',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: 'List of broadcast notifications for the user',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/BroadcastNotification',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/notifications/broadcast/{id}/status': {
+      patch: {
+        tags: ['Notifications'],
+        summary: 'Update broadcast notification status for the logged-in user',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: '60d5f3a4b1234567890abcd5',
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  read: {
+                    type: 'boolean',
+                    example: true,
+                  },
+                  dismissedAt: {
+                    type: 'string',
+                    format: 'date-time',
+                    example: '2025-07-06T15:00:00.000Z',
+                    nullable: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Broadcast notification status updated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    data: {
+                      $ref: '#/components/schemas/UserBroadcastNotificationStatus',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Validation error (e.g., invalid input)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Validation error',
+                  errors: ['Invalid input'],
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Notification not found',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Notification not found',
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Unauthorized (no or invalid token)',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error',
+                },
+                example: {
+                  message: 'Not authorized to access this route, token failed',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+// Logic để thêm server URL dựa trên môi trường
+if (process.env.NODE_ENV === 'production') {
+  swaggerConfig.servers.push({
+    url: 'https://do-khong-truot-phat-nao.onrender.com/api', // URL API production của bạn
+    description: 'Production Server',
+  });
+  console.log('Server URL: https://do-khong-truot-phat-nao.onrender.com/api');
+} else {
+  const PORT = process.env.PORT;
+  // Mặc định là development hoặc local
+  swaggerConfig.servers.push({
+    url: `http://localhost:${PORT}/api`, // URL API local của bạn
+    description: 'Local Development Server',
+  });
+  console.log(`Server URL: http://localhost:${PORT}/api`);
+}
+
+module.exports = swaggerConfig;

@@ -3,13 +3,14 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const { connectDB } = require('./db');
 const errorHandler = require('./middlewares/errorHandler');
-
+// Load biến môi trường từ .env
+dotenv.config();
 require('./utils/cronJob');
 
 // Import Swagger
 const swaggerUi = require('swagger-ui-express');
 // Load your swagger.json (which should reference /auth and /users, not /api/auth)
-const swaggerDocument = require('./swagger.json');
+const swaggerSpec = require('./swaggerConfig'); //Sử dụng cấu hình động thay vì file json như ban đầu
 
 const User = require('./models/User');
 const ParkingLot = require('./models/ParkingLot');
@@ -18,9 +19,6 @@ const Booking = require('./models/Booking');
 const PersonalNotification = require('./models/PersonalNotifications');
 const BroadcastNotification = require('./models/BroadcastNotification');
 const UserBroadcastNotificationStatus = require('./models/UserBroadcastNotificationStatus');
-
-// Load biến môi trường từ .env
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -44,7 +42,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Cấu hình Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 console.log(`Xem chi tiết tài liệu api tại ${apiBaseUrl}/api-docs`); // Thêm log để dễ dàng truy cập
 
 // Import Routes
