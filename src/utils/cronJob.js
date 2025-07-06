@@ -4,7 +4,7 @@ const axios = require('axios');
 const keepServerAlive = async () => {
   try {
     const response = await axios.get(
-      'https://do-khong-truot-phat-nao.onrender.com'
+      'https://do-khong-truot-phat-nao.onrender.com/test'
     );
 
     // Lấy thời gian hiện tại để log
