@@ -1,25 +1,34 @@
 const mongoose = require('mongoose');
 
-const reviewSchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    parkingLotId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'ParkingLot',
-      required: true,
-    },
-    rating: { type: Number, min: 1, max: 5, required: true },
-    comment: { type: String },
-    isDeleted: { type: Boolean, default: false },
-    deletedAt: { type: Date },
+const ReviewSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
-  { timestamps: true }
-);
-reviewSchema.index({ userId: 1 });
+  parkingLot: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ParkingLot',
+    required: true,
+  },
+  rating: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 5,
+  },
+  comment: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'Comment must not exceed 500 characters'],
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-const Review = mongoose.model('Review', reviewSchema, 'reviews');
+ReviewSchema.index({ user: 1 });
+
+const Review = mongoose.model("Review", ReviewSchema, "reviews");
 module.exports = Review;
