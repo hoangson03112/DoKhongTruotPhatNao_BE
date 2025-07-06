@@ -1,3 +1,6 @@
+const mongoose = require('mongoose');
+const BroadcastNotification = require('./BroadcastNotification');
+
 // ====== Model UserNotificationStatus (Trạng thái đã đọc của người dùng đối với BroadcastNotification) ======
 const userNotificationStatusSchema = new mongoose.Schema(
   {

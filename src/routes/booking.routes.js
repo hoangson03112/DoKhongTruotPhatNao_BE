@@ -1,9 +1,40 @@
 const express = require('express');
+const {
+  createBooking,
+  getMyBookings,
+  getBookingById,
+  cancelBooking,
+  checkInVehicle,
+  checkOutVehicle,
+  getAllBookings,
+} = require('../controllers/booking.controller');
+const { protect, authorizeRoles } = require('../middlewares/auth');
+
 const router = express.Router();
-const BookingController = require('../controllers/BookingController');
 
-router.post('/', BookingController.createBooking);
-router.get('/', BookingController.getBookings);
-router.get('/:id', BookingController.getBookingById);
+router.route('/').post(protect, createBooking); // User creates booking
+router.get('/my', protect, getMyBookings); // User views their bookings
+router.get(
+  '/',
+  protect,
+  authorizeRoles('admin', 'parking_owner', 'staff'),
+  getAllBookings
+); // Admin/Owner/Staff views all/filtered bookings
 
-module.exports = router; 
+router.route('/:id').get(protect, getBookingById); // User/Admin/Owner/Staff get specific booking
+
+router.patch('/:id/cancel', protect, cancelBooking); // User/Admin/Owner/Staff cancel booking
+router.patch(
+  '/:id/checkin',
+  protect,
+  authorizeRoles('admin', 'parking_owner', 'staff'),
+  checkInVehicle
+); // Staff/Owner/Admin check-in
+router.patch(
+  '/:id/checkout',
+  protect,
+  authorizeRoles('admin', 'parking_owner', 'staff'),
+  checkOutVehicle
+); // Staff/Owner/Admin check-out
+
+module.exports = router;
