@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 // ====== Model BroadcastNotification ======
 const broadcastNotificationSchema = new mongoose.Schema(
@@ -9,18 +9,18 @@ const broadcastNotificationSchema = new mongoose.Schema(
       // Loại thông báo chung
       type: String,
       enum: [
-        'promotion',
-        'system_update',
-        'general_announcement',
-        'parking_lot_news',
+        "promotion",
+        "system_update",
+        "general_announcement",
+        "parking_lot_news",
       ],
       required: true,
     },
     targetRoles: {
       // Bổ sung: Gửi tới những vai trò nào (ví dụ: ['user', 'parking_owner'])
       type: [String],
-      enum: ['user', 'admin', 'parking_owner', 'staff'],
-      default: ['user'], // Mặc định gửi tới tất cả user
+      enum: ["user", "admin", "parking_owner", "staff"],
+      default: ["user"], // Mặc định gửi tới tất cả user
     },
     filters: {
       // Bổ sung: Các bộ lọc khác (ví dụ: { city: 'Hanoi', vehicleType: 'electric' })
@@ -39,7 +39,7 @@ broadcastNotificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); 
 broadcastNotificationSchema.index({ type: 1, sentAt: -1 });
 
 const BroadcastNotification = mongoose.model(
-  'BroadcastNotification',
+  "BroadcastNotification",
   broadcastNotificationSchema,
-  'broadcast_notifications'
+  "broadcast_notifications"
 );

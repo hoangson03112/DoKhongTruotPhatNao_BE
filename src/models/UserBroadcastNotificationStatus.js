@@ -1,17 +1,17 @@
-const mongoose = require('mongoose');
-const BroadcastNotification = require('./BroadcastNotification');
+const mongoose = require("mongoose");
+const BroadcastNotification = require("./BroadcastNotification");
 
 // ====== Model UserNotificationStatus (Trạng thái đã đọc của người dùng đối với BroadcastNotification) ======
 const userNotificationStatusSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     broadcastNotificationId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'BroadcastNotification',
+      ref: "BroadcastNotification",
       required: true,
     },
     read: { type: Boolean, default: false }, // Trạng thái đã đọc
@@ -28,9 +28,9 @@ userNotificationStatusSchema.index(
 userNotificationStatusSchema.index({ broadcastNotificationId: 1 });
 
 const UserNotificationStatus = mongoose.model(
-  'UserNotificationStatus',
+  "UserNotificationStatus",
   userNotificationStatusSchema,
-  'user_notification_statuses'
+  "user_notification_statuses"
 );
 
 module.exports = {

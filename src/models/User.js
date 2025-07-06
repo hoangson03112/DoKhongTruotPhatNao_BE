@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 // Model User
 const userSchema = new mongoose.Schema(
@@ -12,8 +12,8 @@ const userSchema = new mongoose.Schema(
     phone: { type: String },
     role: {
       type: String,
-      enum: ['user', 'admin', 'parking_owner', 'staff'], // Thêm 'parking_owner' và 'staff'
-      default: 'user',
+      enum: ["user", "admin", "parking_owner", "staff"],
+      default: "user",
     },
     avatar: { type: String },
     refreshToken: { type: String },
@@ -25,8 +25,8 @@ const userSchema = new mongoose.Schema(
 );
 
 // Mã hóa mật khẩu trước khi lưu
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
     next();
   }
   const salt = await bcrypt.genSalt(10);
@@ -46,5 +46,5 @@ userSchema.methods.getSignedJwtToken = function () {
   });
 };
 
-const User = mongoose.model('User', userSchema, 'user');
+const User = mongoose.model("User", userSchema, "user");
 module.exports = User;
