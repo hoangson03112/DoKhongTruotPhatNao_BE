@@ -5,7 +5,7 @@
 // In a real multi-server environment, use a distributed queue like Redis, RabbitMQ, Kafka.
 // This is a basic in-memory queue for demonstration on a single server.
 const ParkingLot = require('../models/ParkingLot');
-const ParkingSpot = require('../models/ParkingSpot');
+// const ParkingSpot = require('../models/ParkingSpot');
 const { default: mongoose } = require('mongoose');
 
 class QueueService {
@@ -56,78 +56,78 @@ class QueueService {
   }
 
   // Khi một booking mới được tạo, có thể là đặt trước (reserved) hoặc đặt ngay (occupied)
-  async handleDecrementAvailableSpots(payload) {
-    const { parkingLotId, parkingSpotId, newParkingSpotStatus } = payload;
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      // 1. Cập nhật trạng thái ParkingSpot, sử dụng newParkingSpotStatus từ payload: occupied hoaặc reserved
-      await ParkingSpot.findByIdAndUpdate(
-        parkingSpotId,
-        { status: newParkingSpotStatus },
-        { session }
-      );
+  // async handleDecrementAvailableSpots(payload) {
+  //   const { parkingLotId, parkingSpotId, newParkingSpotStatus } = payload;
+  //   const session = await mongoose.startSession();
+  //   session.startTransaction();
+  //   try {
+  //     // 1. Cập nhật trạng thái ParkingSpot, sử dụng newParkingSpotStatus từ payload: occupied hoaặc reserved
+  //     await ParkingSpot.findByIdAndUpdate(
+  //       parkingSpotId,
+  //       { status: newParkingSpotStatus },
+  //       { session }
+  //     );
 
-      // 2. Giảm availableSpots của ParkingLot
-      const updatedLot = await ParkingLot.findByIdAndUpdate(
-        parkingLotId,
-        { $inc: { availableSpots: -1 } },
-        { new: true, session }
-      );
+  //     // 2. Giảm availableSpots của ParkingLot
+  //     const updatedLot = await ParkingLot.findByIdAndUpdate(
+  //       parkingLotId,
+  //       { $inc: { availableSpots: -1 } },
+  //       { new: true, session }
+  //     );
 
-      if (updatedLot && updatedLot.availableSpots < 0) {
-        throw new Error(
-          'Not enough available spots. Rolling back transaction.'
-        );
-      }
+  //     if (updatedLot && updatedLot.availableSpots < 0) {
+  //       throw new Error(
+  //         'Not enough available spots. Rolling back transaction.'
+  //       );
+  //     }
 
-      await session.commitTransaction();
-      console.log(
-        `Decremented available spots for ${parkingLotId}. New count: ${updatedLot.availableSpots}`
-      );
+  //     await session.commitTransaction();
+  //     console.log(
+  //       `Decremented available spots for ${parkingLotId}. New count: ${updatedLot.availableSpots}`
+  //     );
 
-      // TODO: Gửi cập nhật real-time về frontend qua Socket
-    } catch (error) {
-      await session.abortTransaction();
-      throw error; // Re-throw to be caught by processQueue error handling
-    } finally {
-      session.endSession();
-    }
-  }
+  //     // TODO: Gửi cập nhật real-time về frontend qua Socket
+  //   } catch (error) {
+  //     await session.abortTransaction();
+  //     throw error; // Re-throw to be caught by processQueue error handling
+  //   } finally {
+  //     session.endSession();
+  //   }
+  // }
 
-  // Khi một booking bị huỷ hoặc xe check-out, đánh dấu chỗ đó là 'available'
-  async handleIncrementAvailableSpots(payload) {
-    const { parkingLotId, parkingSpotId, newParkingSpotStatus } = payload;
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      // 1. Cập nhật trạng thái ParkingSpot
-      await ParkingSpot.findByIdAndUpdate(
-        parkingSpotId,
-        { status: newParkingSpotStatus },
-        { session }
-      );
+  // // Khi một booking bị huỷ hoặc xe check-out, đánh dấu chỗ đó là 'available'
+  // async handleIncrementAvailableSpots(payload) {
+  //   const { parkingLotId, parkingSpotId, newParkingSpotStatus } = payload;
+  //   const session = await mongoose.startSession();
+  //   session.startTransaction();
+  //   try {
+  //     // 1. Cập nhật trạng thái ParkingSpot
+  //     await ParkingSpot.findByIdAndUpdate(
+  //       parkingSpotId,
+  //       { status: newParkingSpotStatus },
+  //       { session }
+  //     );
 
-      // 2. Tăng availableSpots của ParkingLot
-      const updatedLot = await ParkingLot.findByIdAndUpdate(
-        parkingLotId,
-        { $inc: { availableSpots: 1 } },
-        { new: true, session }
-      );
+  //     // 2. Tăng availableSpots của ParkingLot
+  //     const updatedLot = await ParkingLot.findByIdAndUpdate(
+  //       parkingLotId,
+  //       { $inc: { availableSpots: 1 } },
+  //       { new: true, session }
+  //     );
 
-      await session.commitTransaction();
-      console.log(
-        `Incremented available spots for ${parkingLotId}. New count: ${updatedLot.availableSpots}`
-      );
+  //     await session.commitTransaction();
+  //     console.log(
+  //       `Incremented available spots for ${parkingLotId}. New count: ${updatedLot.availableSpots}`
+  //     );
 
-      // TODO: Gửi cập nhật real-time về frontend qua Socket
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      session.endSession();
-    }
-  }
+  //     // TODO: Gửi cập nhật real-time về frontend qua Socket
+  //   } catch (error) {
+  //     await session.abortTransaction();
+  //     throw error;
+  //   } finally {
+  //     session.endSession();
+  //   }
+  // }
 }
 
 const queueService = new QueueService(); //Tạo instance đầu tiên

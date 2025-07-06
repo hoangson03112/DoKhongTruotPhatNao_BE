@@ -1,5 +1,4 @@
 const User = require('../models/User');
-const Vehicle = require('../models/Vehicle');
 const Booking = require('../models/Booking');
 
 // @desc    Get user profile

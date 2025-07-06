@@ -1,7 +1,6 @@
 const Booking = require('../models/Booking');
-const ParkingSpot = require('../models/ParkingSpot');
 const ParkingLot = require('../models/ParkingLot');
-const Payment = require('../models/Payment');
+// const Payment = require('../models/Payment');
 const PersonalNotification = require('../models/PersonalNotifications');
 const { default: mongoose } = require('mongoose');
 const queueService = require('../utils/queueService'); // Import the queue service
@@ -85,17 +84,17 @@ const createBooking = async (req, res, next) => {
     });
 
     // Create a pending payment record
-    const newPayment = new Payment({
-      bookingId: createdBooking._id,
-      userId: req.user._id,
-      amount: createdBooking.amount,
-      paymentStatus: 'pending',
-    });
-    const createdPayment = await newPayment.save({ session });
+    // const newPayment = new Payment({
+    //   bookingId: createdBooking._id,
+    //   userId: req.user._id,
+    //   amount: createdBooking.amount,
+    //   paymentStatus: 'pending',
+    // });
+    // const createdPayment = await newPayment.save({ session });
 
-    // Link payment to booking
-    createdBooking.paymentId = createdPayment._id;
-    await createdBooking.save({ session });
+    // // Link payment to booking
+    // createdBooking.paymentId = createdPayment._id;
+    // await createdBooking.save({ session });
 
     // Send notification to user (e.g., booking confirmation)
     const notification = new PersonalNotification({
@@ -108,7 +107,7 @@ const createBooking = async (req, res, next) => {
     await notification.save({ session });
 
     await session.commitTransaction();
-    res.status(201).json({ booking: createdBooking, payment: createdPayment });
+    // res.status(201).json({ booking: createdBooking, payment: createdPayment });
   } catch (error) {
     await session.abortTransaction();
     next(error);
@@ -232,12 +231,12 @@ const cancelBooking = async (req, res, next) => {
     });
 
     // Update payment status if needed (e.g., refund)
-    const payment = await Payment.findById(booking.paymentId).session(session);
-    if (payment && payment.paymentStatus === 'paid') {
-      payment.paymentStatus = 'refunded'; // Or 'pending_refund'
-      await payment.save({ session });
-      // TODO: Trigger actual refund process if integrated with payment gateway
-    }
+    // const payment = await Payment.findById(booking.paymentId).session(session);
+    // if (payment && payment.paymentStatus === 'paid') {
+    //   payment.paymentStatus = 'refunded'; // Or 'pending_refund'
+    //   await payment.save({ session });
+    //   // TODO: Trigger actual refund process if integrated with payment gateway
+    // }
 
     // Send cancellation notification
     const notification = new PersonalNotification({
@@ -425,13 +424,13 @@ const checkOutVehicle = async (req, res, next) => {
     });
 
     // Update Payment record
-    const payment = await Payment.findById(booking.paymentId).session(session);
-    if (payment) {
-      payment.amount = totalAmount; // Update final amount
-      payment.paymentStatus = 'pending_payment_on_exit'; // Or 'pending' if it was already paid
-      await payment.save({ session });
-      // TODO: Trigger payment collection process here if payment_on_exit
-    }
+    // const payment = await Payment.findById(booking.paymentId).session(session);
+    // if (payment) {
+    //   payment.amount = totalAmount; // Update final amount
+    //   payment.paymentStatus = 'pending_payment_on_exit'; // Or 'pending' if it was already paid
+    //   await payment.save({ session });
+    //   // TODO: Trigger payment collection process here if payment_on_exit
+    // }
 
     // Send completion notification
     const notification = new PersonalNotification({
@@ -460,8 +459,14 @@ const checkOutVehicle = async (req, res, next) => {
 // @access  Private (Admin/Owner/Staff)
 const getAllBookings = async (req, res, next) => {
   try {
-    const { userId, parkingLotId, status, paymentStatus, startDate, endDate } =
-      req.query;
+    const {
+      userId,
+      parkingLotId,
+      status,
+      // paymentStatus,
+      startDate,
+      endDate,
+    } = req.query;
     let query = { isDeleted: false };
 
     console.log('status', status);

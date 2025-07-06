@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const ParkingLotSchema = new mongoose.Schema({
   name: {
@@ -25,10 +25,19 @@ const ParkingLotSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
-  pricing: [PricingSchema],
+  pricing: {
+    type: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Pricing',
+        required: true,
+      },
+    ],
+    required: true,
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
     required: true,
   },
   images: [
@@ -41,18 +50,18 @@ const ParkingLotSchema = new mongoose.Schema({
     {
       type: String,
       trim: true, // Gợi ý khu vực đỗ, ví dụ: ["Tầng B1", "Khu vực A"]
-      maxlength: [50, "Suggested area must not exceed 50 characters"],
+      maxlength: [50, 'Suggested area must not exceed 50 characters'],
     },
   ],
   parkingType: {
     type: String,
-    enum: ["official", "unofficial", "temporary"],
-    default: "official",
+    enum: ['official', 'unofficial', 'temporary'],
+    default: 'official',
   },
   verificationStatus: {
     type: String,
-    enum: ["pending", "verified", "rejected"],
-    default: "pending",
+    enum: ['pending', 'verified', 'rejected'],
+    default: 'pending',
   },
   createdAt: {
     type: Date,
@@ -60,7 +69,7 @@ const ParkingLotSchema = new mongoose.Schema({
   },
 });
 
-ParkingLotSchema.index({ location: "2dsphere" });
+ParkingLotSchema.index({ location: '2dsphere' });
 ParkingLotSchema.index({ ownerId: 1 });
 
-module.exports = mongoose.model("ParkingLot", ParkingLotSchema, "parkinglots");
+module.exports = mongoose.model('ParkingLot', ParkingLotSchema, 'parkinglots');

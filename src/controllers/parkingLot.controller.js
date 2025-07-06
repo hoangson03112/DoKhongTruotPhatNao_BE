@@ -1,20 +1,5 @@
 const ParkingLot = require('../models/ParkingLot');
-const ParkingSpot = require('../models/ParkingSpot');
 const User = require('../models/User');
-
-// Helper to calculate available spots (can be optimized with dedicated cache/queue)
-const calculateAvailableSpots = async (parkingLotId) => {
-  const totalSpots = await ParkingSpot.countDocuments({
-    parkingLotId,
-    isDeleted: false,
-  });
-  const occupiedOrReservedSpots = await ParkingSpot.countDocuments({
-    parkingLotId,
-    status: { $in: ['occupied', 'reserved'] },
-    isDeleted: false,
-  });
-  return totalSpots - occupiedOrReservedSpots;
-};
 
 // @desc    Create a new parking lot
 // @route   POST /api/parkinglots
@@ -173,13 +158,13 @@ const softDeleteParkingLot = async (req, res, next) => {
     parkingLot.deletedAt = new Date();
     await parkingLot.save();
 
-    // Also soft delete all associated parking spots
-    await ParkingSpot.updateMany(
-      { parkingLotId: parkingLot._id },
-      {
-        $set: { isDeleted: true, deletedAt: new Date(), status: 'maintenance' },
-      } // Mark as maintenance
-    );
+    // // Also soft delete all associated parking spots
+    // await ParkingSpot.updateMany(
+    //   { parkingLotId: parkingLot._id },
+    //   {
+    //     $set: { isDeleted: true, deletedAt: new Date(), status: 'maintenance' },
+    //   } // Mark as maintenance
+    // );
 
     res.status(200).json({
       message: 'Parking Lot and associated spots soft deleted successfully',

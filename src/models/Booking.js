@@ -1,21 +1,22 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
+const shortid = require('shortid');
 
 // Lượt đặt chỗ / để xe (có thể đặt trước)
 const BookingSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
     required: true,
   },
   parkingLot: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "ParkingLot",
+    ref: 'ParkingLot',
     required: true,
   },
   parkingLocation: {
     type: String,
     trim: true,
-    maxlength: [100, "Parking location must not exceed 100 characters"],
+    maxlength: [100, 'Parking location must not exceed 100 characters'],
   },
   startTime: {
     type: Date,
@@ -26,14 +27,14 @@ const BookingSchema = new mongoose.Schema({
   },
   vehicleType: {
     type: String,
-    enum: ["car"],
+    enum: ['car'],
     required: true,
   },
   licensePlate: {
     type: String,
     required: true,
     trim: true,
-    match: [/^\d{2}[A-Z]{1,2}-\d{4,5}$/, "Invalid car license plate format"],
+    match: [/^\d{2}[A-Z]{1,2}-\d{4,5}$/, 'Invalid car license plate format'],
   },
   bookingCode: {
     type: String,
@@ -42,8 +43,8 @@ const BookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "confirmed", "completed", "cancelled"],
-    default: "pending",
+    enum: ['pending', 'confirmed', 'completed', 'cancelled'],
+    default: 'pending',
   },
   cancellationPolicy: {
     maxCancelTime: { type: Date },
@@ -62,26 +63,26 @@ const BookingSchema = new mongoose.Schema({
 BookingSchema.index({ parkingLot: 1, status: 1 });
 BookingSchema.index({ user: 1, status: 1 });
 
-BookingSchema.pre("save", async function (next) {
+BookingSchema.pre('save', async function (next) {
   if (
     this.isNew ||
-    this.isModified("startTime") ||
-    this.isModified("endTime") ||
-    this.isModified("pricingType")
+    this.isModified('startTime') ||
+    this.isModified('endTime') ||
+    this.isModified('pricingType')
   ) {
     const parkingLot = await mongoose
-      .model("ParkingLot")
+      .model('ParkingLot')
       .findById(this.parkingLot);
 
     // Kiểm tra số chỗ trống
     if (parkingLot.availableSlots <= 0) {
-      throw new Error("No available slots in this parking lot");
+      throw new Error('No available slots in this parking lot');
     }
 
     // Kiểm tra startTime không quá xa (tối đa 24 giờ tới)
     const now = new Date();
     if (this.startTime > new Date(now.getTime() + 24 * 60 * 60 * 1000)) {
-      throw new Error("startTime cannot be more than 24 hours in the future");
+      throw new Error('startTime cannot be more than 24 hours in the future');
     }
 
     // Tính giá
@@ -89,11 +90,11 @@ BookingSchema.pre("save", async function (next) {
       (p) => p.type === this.pricingType && p.vehicleType === this.vehicleType
     );
     if (!pricing) {
-      throw new Error("Pricing not found for the selected type and vehicle");
+      throw new Error('Pricing not found for the selected type and vehicle');
     }
     const { price, maxDuration } = pricing;
 
-    if (this.pricingType === "per_entry") {
+    if (this.pricingType === 'per_entry') {
       this.totalPrice = price;
       if (maxDuration && this.endTime) {
         const duration = (this.endTime - this.startTime) / (1000 * 60 * 60); // Giờ
@@ -108,13 +109,13 @@ BookingSchema.pre("save", async function (next) {
           this.startTime.getTime() + maxDuration * 60 * 60 * 1000
         );
       }
-    } else if (this.pricingType === "hourly") {
+    } else if (this.pricingType === 'hourly') {
       const duration = (this.endTime - this.startTime) / (1000 * 60 * 60); // Giờ
       this.totalPrice = price * Math.ceil(duration);
-    } else if (this.pricingType === "daily") {
+    } else if (this.pricingType === 'daily') {
       const duration = (this.endTime - this.startTime) / (1000 * 60 * 60); // Giờ
       this.totalPrice = price * Math.ceil(duration / 24);
-    } else if (this.pricingType === "monthly") {
+    } else if (this.pricingType === 'monthly') {
       this.totalPrice = price;
     }
 
@@ -124,14 +125,14 @@ BookingSchema.pre("save", async function (next) {
   }
   next();
 });
-BookingSchema.post("save", async function (doc, next) {
-  if (doc.status === "cancelled" || doc.status === "completed") {
+BookingSchema.post('save', async function (doc, next) {
+  if (doc.status === 'cancelled' || doc.status === 'completed') {
     const parkingLot = await mongoose
-      .model("ParkingLot")
+      .model('ParkingLot')
       .findById(doc.parkingLot);
     parkingLot.availableSlots += 1;
     await parkingLot.save();
   }
   next();
 });
-module.exports = mongoose.model("Booking", BookingSchema, "bookings");
+module.exports = mongoose.model('Booking', BookingSchema, 'bookings');

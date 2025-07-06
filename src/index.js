@@ -10,17 +10,12 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 
 const User = require('./models/User');
-const Vehicle = require('./models/Vehicle');
 const ParkingLot = require('./models/ParkingLot');
-const ParkingSpot = require('./models/ParkingSpot');
 const Booking = require('./models/Booking');
-const Payment = require('./models/Payment');
-const Review = require('./models/Review');
+// const Review = require('./models/Review');
 const PersonalNotification = require('./models/PersonalNotifications');
-const {
-  BroadcastNotification,
-  UserNotificationStatus,
-} = require('./models/UserBroadcastNotificationStatus');
+const BroadcastNotification = require('./models/BroadcastNotification');
+const UserBroadcastNotificationStatus = require('./models/UserBroadcastNotificationStatus');
 
 // Load biến môi trường từ .env
 dotenv.config();
@@ -39,24 +34,18 @@ console.log(`Xem chi tiết tài liệu api tại http://localhost:${PORT}/api-d
 
 // Import Routes
 const userRoutes = require('./routes/user.routes');
-const vehicleRoutes = require('./routes/vehicle.routes');
 const parkingLotRoutes = require('./routes/parkingLot.routes');
-const parkingSpotRoutes = require('./routes/parkingSpot.routes');
 const bookingRoutes = require('./routes/booking.routes');
-const paymentRoutes = require('./routes/payment.routes');
-const reviewRoutes = require('./routes/review.routes');
+// const reviewRoutes = require('./routes/review.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const authRoutes = require('./routes/auth.routes');
 // const adminRoutes = require('./routes/admin.routes'); // Add if you create admin routes
 
 // Use Routes
 app.use('/api/users', userRoutes);
-app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/parking-lots', parkingLotRoutes);
-app.use('/api/parking-spots', parkingSpotRoutes);
 app.use('/api/bookings', bookingRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/reviews', reviewRoutes);
+// app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/auth', authRoutes);
 // app.use('/api/admin', adminRoutes);
