@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const PricingSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['per_entry', 'hourly', 'daily', 'monthly'],
+    enum: ["hourly"],
     required: true,
   },
   price: {
@@ -11,15 +11,6 @@ const PricingSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
-  vehicleType: {
-    type: String,
-    enum: ['car', 'motorbike'],
-    required: true,
-  },
-  maxDuration: {
-    type: Number,
-    default: null,
-  },
 });
-const Pricing = mongoose.model('Pricing', PricingSchema, 'pricing');
+const Pricing = mongoose.model("Pricing", PricingSchema, "pricing");
 module.exports = Pricing;
