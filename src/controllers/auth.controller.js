@@ -66,10 +66,6 @@ const register = async (req, res, next) => {
       if (role === 'staff' && Array.isArray(parkingLotAccess)) {
         userParkingLotAccess = parkingLotAccess;
       }
-    } else if (role && role !== 'user') {
-      return res.status(403).json({
-        message: 'Only admin can register users with roles other than "user".',
-      });
     }
 
     const user = await User.create({

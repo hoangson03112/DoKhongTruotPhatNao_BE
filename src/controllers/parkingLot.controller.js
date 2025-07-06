@@ -119,6 +119,8 @@ const updateParkingLot = async (req, res, next) => {
       description,
       address,
       location,
+      totalSpots,
+      availableSpots,
       hourlyRate,
       imageUrls,
       contactPhone,
@@ -130,6 +132,8 @@ const updateParkingLot = async (req, res, next) => {
     parkingLot.description = description || parkingLot.description;
     parkingLot.address = address || parkingLot.address;
     if (location) parkingLot.location = location; // Update location if provided
+    parkingLot.totalSpots = totalSpots || parkingLot.totalSpots;
+    parkingLot.availableSpots = availableSpots || parkingLot.availableSpots;
     parkingLot.hourlyRate = hourlyRate || parkingLot.hourlyRate;
     parkingLot.imageUrls = imageUrls || parkingLot.imageUrls;
     parkingLot.contactPhone = contactPhone || parkingLot.contactPhone;

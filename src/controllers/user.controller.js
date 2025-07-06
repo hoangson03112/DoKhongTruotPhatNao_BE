@@ -27,8 +27,10 @@ const getUserProfile = async (req, res, next) => {
 const updateUserProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
+
     if (user) {
       user.name = req.body.name || user.name;
+      user.username = req.body.username || user.username;
       user.email = req.body.email || user.email;
       user.phone = req.body.phone || user.phone;
       user.avatar = req.body.avatar || user.avatar;
@@ -38,6 +40,7 @@ const updateUserProfile = async (req, res, next) => {
       }
 
       const updatedUser = await user.save();
+
       res.status(200).json({
         _id: updatedUser._id,
         username: updatedUser.username,

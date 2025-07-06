@@ -40,7 +40,7 @@ const createBooking = async (req, res, next) => {
     if (!parkingSpot) {
       throw new Error('Parking Spot not found or is deleted.');
     }
-    if (parkingSpot.status !== 'available' || !parkingSpot.isBookable) {
+    if (parkingSpot.status !== 'available') {
       throw new Error('Parking Spot is not available or not bookable.');
     }
 
@@ -463,6 +463,8 @@ const getAllBookings = async (req, res, next) => {
     const { userId, parkingLotId, status, paymentStatus, startDate, endDate } =
       req.query;
     let query = { isDeleted: false };
+
+    console.log('status', status);
 
     // Apply filters based on role
     if (req.user.role === 'user') {

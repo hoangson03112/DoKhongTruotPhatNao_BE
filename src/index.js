@@ -4,6 +4,11 @@ const morgan = require('morgan');
 const { connectDB } = require('./db');
 const errorHandler = require('./middlewares/errorHandler');
 
+// Import Swagger
+const swaggerUi = require('swagger-ui-express');
+// Load your swagger.json (which should reference /auth and /users, not /api/auth)
+const swaggerDocument = require('./swagger.json');
+
 const User = require('./models/User');
 const Vehicle = require('./models/Vehicle');
 const ParkingLot = require('./models/ParkingLot');
@@ -27,6 +32,10 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+
+// Cấu hình Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+console.log(`Xem chi tiết tài liệu api tại http://localhost:${PORT}/api-docs`); // Thêm log để dễ dàng truy cập
 
 // Import Routes
 const userRoutes = require('./routes/user.routes');
