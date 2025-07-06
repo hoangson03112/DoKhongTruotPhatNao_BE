@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
-const BroadcastNotification = require('./BroadcastNotification');
 
-// ====== Model UserNotificationStatus (Trạng thái đã đọc của người dùng đối với BroadcastNotification) ======
-const userNotificationStatusSchema = new mongoose.Schema(
+// ====== Model UserBroadcastNotificationStatus (Trạng thái đã đọc của người dùng đối với BroadcastNotification) ======
+const userBroadcastNotificationStatusSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -21,19 +20,16 @@ const userNotificationStatusSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-userNotificationStatusSchema.index(
+userBroadcastNotificationStatusSchema.index(
   { userId: 1, broadcastNotificationId: 1 },
   { unique: true }
 ); // Đảm bảo mỗi người dùng chỉ có 1 bản ghi trạng thái cho 1 broadcast
-userNotificationStatusSchema.index({ broadcastNotificationId: 1 });
+userBroadcastNotificationStatusSchema.index({ broadcastNotificationId: 1 });
 
-const UserNotificationStatus = mongoose.model(
-  'UserNotificationStatus',
-  userNotificationStatusSchema,
+const UserBroadcastNotificationStatus = mongoose.model(
+  'UserBroadcastNotificationStatus',
+  userBroadcastNotificationStatusSchema,
   'user_notification_statuses'
 );
 
-module.exports = {
-  BroadcastNotification,
-  UserNotificationStatus,
-};
+module.exports = UserBroadcastNotificationStatus;

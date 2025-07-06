@@ -43,3 +43,5 @@ const BroadcastNotification = mongoose.model(
   broadcastNotificationSchema,
   'broadcast_notifications'
 );
+
+module.exports = BroadcastNotification;

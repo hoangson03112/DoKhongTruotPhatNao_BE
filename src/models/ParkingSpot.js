@@ -27,7 +27,6 @@ const parkingSpotSchema = new mongoose.Schema(
       */
       default: 'available',
     },
-    isBookable: { type: Boolean, default: true },
     floor: { type: Number }, // (optional) tầng số (ví dụ: 1, 2, 3, hoặc 4).
     wing: { type: String }, // (optional) khu vực hoặc cánh của bãi đỗ xe (ví dụ: "Cánh A", "Cánh B", hoặc "Khu Đông").
     isDeleted: { type: Boolean, default: false },

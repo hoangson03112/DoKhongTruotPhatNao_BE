@@ -45,7 +45,6 @@ const createParkingSpot = async (req, res, next) => {
       floor,
       wing,
       status: 'available', // Newly created spots are available by default
-      isBookable: true,
     });
 
     const createdSpot = await newSpot.save({ session });
@@ -116,7 +115,7 @@ const updateParkingSpot = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { status, type, floor, wing, isBookable, spotNumber } = req.body;
+    const { status, type, floor, wing, spotNumber } = req.body;
     const parkingSpot = await ParkingSpot.findOne({
       _id: req.params.id,
       isDeleted: false,
@@ -171,8 +170,6 @@ const updateParkingSpot = async (req, res, next) => {
     parkingSpot.type = type || parkingSpot.type;
     parkingSpot.floor = floor !== undefined ? floor : parkingSpot.floor;
     parkingSpot.wing = wing || parkingSpot.wing;
-    parkingSpot.isBookable =
-      isBookable !== undefined ? isBookable : parkingSpot.isBookable;
     parkingSpot.spotNumber = spotNumber || parkingSpot.spotNumber; // Allow changing spot number (with care)
 
     const updatedSpot = await parkingSpot.save({ session });

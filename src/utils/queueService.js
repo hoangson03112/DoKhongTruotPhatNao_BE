@@ -131,6 +131,5 @@ class QueueService {
 }
 
 const queueService = new QueueService(); //Tạo instance đầu tiên
-Object.freeze(queueService); // Ensure it's a singleton (for single-server) //Đóng băng instance để ngăn thay đổi
 
 module.exports = queueService;
