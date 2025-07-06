@@ -19,49 +19,26 @@ const BookingSchema = new mongoose.Schema({
   },
   startTime: {
     type: Date,
-    required: true, // Thời gian người dùng chọn để vào bãi
+    required: true,
   },
-  startTimeWindow: {
-    type: Number, // Khoảng thời gian linh hoạt (± phút), mặc định 30 phút
-    default: 30,
-  },
-  endTime: {
+  timeCheckout: {
     type: Date,
-    validate: {
-      validator: function (value) {
-        // endTime không bắt buộc cho per_entry
-        return this.pricingType === "per_entry"
-          ? true
-          : value && value > this.startTime;
-      },
-      message: "End time must be after start time for non per_entry bookings",
-    },
   },
   vehicleType: {
     type: String,
     enum: ["car"],
     required: true,
   },
-  pricingType: {
-    type: String,
-    enum: ["per_entry", "hourly", "daily", "monthly"],
-    required: true,
-  },
   licensePlate: {
     type: String,
     required: true,
     trim: true,
-    match: [/^\d{2}[A-Z]{1,2}-\d{4,5}$/, "Invalid car license plate format"], // Hỗ trợ biển 4-5 số
+    match: [/^\d{2}[A-Z]{1,2}-\d{4,5}$/, "Invalid car license plate format"],
   },
   bookingCode: {
     type: String,
     unique: true,
     default: shortid.generate,
-  },
-  totalPrice: {
-    type: Number,
-    required: true,
-    min: 0,
   },
   status: {
     type: String,
