@@ -278,13 +278,7 @@ const swaggerConfig = {
           },
           status: {
             type: 'string',
-            enum: [
-              'pending',
-              'confirmed',
-              'checked_in',
-              'completed',
-              'cancelled',
-            ],
+            enum: ['pending', 'confirmed', 'active', 'completed', 'cancelled'],
             example: 'confirmed',
             description: 'Trạng thái của đặt chỗ.',
           },
@@ -516,6 +510,163 @@ const swaggerConfig = {
             format: 'date-time',
             example: '2025-07-01T09:05:00Z',
           },
+        },
+      },
+      // Input Schemas
+      UserInput: {
+        type: 'object',
+        required: ['username', 'email', 'password'],
+        properties: {
+          username: { type: 'string', example: 'johndoe' },
+          email: {
+            type: 'string',
+            format: 'email',
+            example: 'johndoe@example.com',
+          },
+          password: {
+            type: 'string',
+            format: 'password',
+            example: 'password123',
+          },
+          name: { type: 'string', example: 'John Doe', nullable: true },
+          phone: { type: 'string', example: '0912345678', nullable: true },
+          role: {
+            type: 'string',
+            enum: ['user', 'admin', 'parking_owner', 'staff'],
+            example: 'user',
+            nullable: true,
+          },
+        },
+      },
+      ParkingOwnerRegisterInput: {
+        type: 'object',
+        required: ['username', 'email', 'password', 'ownerVerificationImages'],
+        properties: {
+          username: { type: 'string', example: 'parkingowner123' },
+          email: {
+            type: 'string',
+            format: 'email',
+            example: 'owner@example.com',
+          },
+          password: {
+            type: 'string',
+            format: 'password',
+            example: 'ownerpass123',
+          },
+          name: { type: 'string', example: 'Parking Owner', nullable: true },
+          phone: { type: 'string', example: '0987654321', nullable: true },
+          ownerVerificationImages: {
+            type: 'array',
+            items: { type: 'string', format: 'url' },
+            example: [
+              'https://example.com/id_front.jpg',
+              'https://example.com/id_back.jpg',
+            ],
+          },
+        },
+      },
+      UserUpdateInput: {
+        type: 'object',
+        properties: {
+          username: { type: 'string', example: 'newusername' },
+          email: {
+            type: 'string',
+            format: 'email',
+            example: 'newemail@example.com',
+          },
+          password: {
+            type: 'string',
+            format: 'password',
+            example: 'newpassword123',
+          },
+          name: { type: 'string', example: 'New Name' },
+          phone: { type: 'string', example: '0987654321' },
+          avatar: {
+            type: 'string',
+            format: 'url',
+            example: 'https://example.com/avatar.jpg',
+          },
+        },
+      },
+      ParkingLotInput: {
+        type: 'object',
+        required: ['name', 'address', 'location', 'hourlyRate'],
+        properties: {
+          name: { type: 'string', example: 'Central Parking Lot' },
+          description: {
+            type: 'string',
+            example: 'Secure parking in city center',
+          },
+          address: {
+            type: 'string',
+            example: '123 Main Street, District 1, HCMC',
+          },
+          location: {
+            type: 'object',
+            properties: {
+              lat: { type: 'number', format: 'float', example: 10.8231 },
+              lng: { type: 'number', format: 'float', example: 106.6297 },
+            },
+          },
+          hourlyRate: { type: 'number', format: 'float', example: 15000 },
+          imageUrls: {
+            type: 'array',
+            items: { type: 'string', format: 'url' },
+            example: ['https://example.com/parking1.jpg'],
+          },
+          contactPhone: { type: 'string', example: '0901234567' },
+          contactEmail: {
+            type: 'string',
+            format: 'email',
+            example: 'contact@parking.com',
+          },
+          openingHours: {
+            type: 'array',
+            items: { type: 'string' },
+            example: ['Monday: 6:00-22:00', 'Tuesday: 6:00-22:00'],
+          },
+        },
+      },
+      BookingInput: {
+        type: 'object',
+        required: ['parkingLotId', 'startTime', 'timeCheckOut', 'licensePlate'],
+        properties: {
+          parkingLotId: {
+            type: 'string',
+            format: 'ObjectId',
+            example: '60d0fe4f3b7d1e0015f8c8b1',
+          },
+          startTime: {
+            type: 'string',
+            format: 'date-time',
+            example: '2025-07-07T10:00:00Z',
+          },
+          timeCheckOut: {
+            type: 'string',
+            format: 'date-time',
+            example: '2025-07-07T12:00:00Z',
+          },
+          licensePlate: { type: 'string', example: '51F-12345' },
+        },
+      },
+      // Response Schemas
+      LoginSuccessResponse: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          token: {
+            type: 'string',
+            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+          },
+          user: { $ref: '#/components/schemas/User' },
+        },
+      },
+      GenericSuccessResponse: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          message: { type: 'string', example: 'Operation successful' },
+          data: { type: 'object', nullable: true },
         },
       },
       Error: {
@@ -1010,6 +1161,186 @@ const swaggerConfig = {
       },
     },
 
+    // --- PARKING LOT ROUTES ---
+    '/parking-lots': {
+      get: {
+        summary: 'Lấy tất cả bãi đỗ xe (Public)',
+        description:
+          'Trả về danh sách tất cả bãi đỗ xe có sẵn (public endpoint).',
+        tags: ['Bãi đỗ xe'],
+        responses: {
+          200: {
+            description: 'Danh sách các bãi đỗ xe.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/ParkingLot' },
+                },
+              },
+            },
+          },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+      post: {
+        summary: 'Tạo bãi đỗ xe mới',
+        description: 'Admin hoặc Parking Owner tạo bãi đỗ xe mới.',
+        tags: ['Bãi đỗ xe'],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/ParkingLotInput' },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Bãi đỗ xe được tạo thành công.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ParkingLot' },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/parking-lots/reservations': {
+      get: {
+        summary: 'Lấy bãi đỗ xe của chủ sở hữu',
+        description: 'Parking Owner lấy danh sách bãi đỗ xe của mình.',
+        tags: ['Bãi đỗ xe'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Danh sách bãi đỗ xe.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/ParkingLot' },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/parking-lots/reservations/{id}': {
+      get: {
+        summary: 'Lấy chi tiết bãi đỗ xe cho Owner',
+        description: 'Parking Owner lấy chi tiết một bãi đỗ xe cụ thể.',
+        tags: ['Bãi đỗ xe'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
+        responses: {
+          200: {
+            description: 'Chi tiết bãi đỗ xe.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ParkingLot' },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/parking-lots/{id}': {
+      get: {
+        summary: 'Lấy chi tiết bãi đỗ xe theo ID',
+        description:
+          'Lấy thông tin chi tiết của một bãi đỗ xe cụ thể (public endpoint).',
+        tags: ['Bãi đỗ xe'],
+        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
+        responses: {
+          200: {
+            description: 'Chi tiết bãi đỗ xe.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ParkingLot' },
+              },
+            },
+          },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+      put: {
+        summary: 'Cập nhật trạng thái bãi đỗ xe',
+        description:
+          'Owner hoặc Admin toggle trạng thái active/inactive của bãi đỗ xe.',
+        tags: ['Bãi đỗ xe'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
+        responses: {
+          200: {
+            description: 'Cập nhật trạng thái thành công.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Parking lot status updated successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+      delete: {
+        summary: 'Xóa mềm bãi đỗ xe',
+        description: 'Owner hoặc Admin xóa mềm bãi đỗ xe.',
+        tags: ['Bãi đỗ xe'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
+        responses: {
+          200: {
+            description: 'Xóa thành công.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example:
+                        'Parking Lot and associated spots soft deleted successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+
     // --- OWNER PARKING LOT ROUTES ---
     '/owner/parking-lots': {
       get: {
@@ -1024,15 +1355,8 @@ const swaggerConfig = {
             content: {
               'application/json': {
                 schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    count: { type: 'integer', example: 1 },
-                    data: {
-                      type: 'array',
-                      items: { $ref: '#/components/schemas/ParkingLot' },
-                    },
-                  },
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/ParkingLot' },
                 },
               },
             },
@@ -1043,7 +1367,7 @@ const swaggerConfig = {
         },
       },
       post: {
-        summary: 'Tạo bãi đỗ xe mới',
+        summary: 'Tạo bãi đỗ xe mới (Owner)',
         description:
           'Chủ bãi đỗ xe tạo một bãi đỗ xe mới. Bãi đỗ xe sẽ ở trạng thái "pending" và cần được Admin xác minh.',
         tags: ['Bãi đỗ xe (Chủ sở hữu)'],
@@ -1058,27 +1382,167 @@ const swaggerConfig = {
         },
         responses: {
           201: {
-            description: 'Bãi đỗ xe được tạo thành công và đang chờ xác minh.',
+            description: 'Bãi đỗ xe được tạo thành công.',
             content: {
               'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    data: { $ref: '#/components/schemas/ParkingLot' },
-                    message: {
-                      type: 'string',
-                      example:
-                        'Parking lot created successfully and awaiting verification.',
-                    },
-                  },
-                },
+                schema: { $ref: '#/components/schemas/ParkingLot' },
               },
             },
           },
           400: { $ref: '#/components/responses/BadRequest' },
           401: { $ref: '#/components/responses/UnauthorizedError' },
           403: { $ref: '#/components/responses/ForbiddenError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/owner/parking-lots/{id}': {
+      put: {
+        summary: 'Cập nhật bãi đỗ xe (Owner)',
+        description: 'Chủ bãi đỗ xe cập nhật trạng thái bãi đỗ xe của mình.',
+        tags: ['Bãi đỗ xe (Chủ sở hữu)'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
+        responses: {
+          200: {
+            description: 'Cập nhật thành công.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Parking lot status updated successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+      delete: {
+        summary: 'Xóa bãi đỗ xe (Owner)',
+        description: 'Chủ bãi đỗ xe xóa mềm bãi đỗ xe của mình.',
+        tags: ['Bãi đỗ xe (Chủ sở hữu)'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
+        responses: {
+          200: {
+            description: 'Xóa thành công.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example:
+                        'Parking Lot and associated spots soft deleted successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+
+    // --- OWNER RESERVATIONS ROUTES ---
+    '/owner/{id}/reservations': {
+      get: {
+        summary: 'Lấy danh sách đặt chỗ theo bãi đỗ xe',
+        description: 'Owner lấy tất cả đặt chỗ của một bãi đỗ xe cụ thể.',
+        tags: ['Đặt chỗ (Chủ sở hữu)'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
+        responses: {
+          200: {
+            description: 'Danh sách đặt chỗ.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    count: { type: 'integer', example: 5 },
+                    data: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Booking' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/owner/reservations/{id}': {
+      put: {
+        summary: 'Cập nhật đặt chỗ (Owner)',
+        description: 'Owner cập nhật trạng thái đặt chỗ.',
+        tags: ['Đặt chỗ (Chủ sở hữu)'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/BookingIdParam' }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    enum: [
+                      'pending',
+                      'confirmed',
+                      'active',
+                      'completed',
+                      'cancelled',
+                    ],
+                    example: 'confirmed',
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Cập nhật đặt chỗ thành công.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: {
+                      type: 'string',
+                      example: 'Reservation updated successfully.',
+                    },
+                    data: { $ref: '#/components/schemas/Booking' },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
           500: { $ref: '#/components/responses/ServerError' },
         },
       },
@@ -1212,6 +1676,355 @@ const swaggerConfig = {
             },
           },
           400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/bookings/{id}/checkin': {
+      patch: {
+        summary: 'Check-in xe vào bãi đỗ',
+        description:
+          'Admin/Owner/Staff xác nhận xe đã check-in vào bãi đỗ, chuyển trạng thái booking từ "confirmed" sang "active".',
+        tags: ['Đặt chỗ'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/BookingIdParam' }],
+        responses: {
+          200: {
+            description: 'Check-in thành công.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: {
+                      type: 'string',
+                      example: 'Vehicle checked in successfully.',
+                    },
+                    data: { $ref: '#/components/schemas/Booking' },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Chỉ có booking "confirmed" mới có thể check-in.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: {
+                  success: false,
+                  message: 'Only confirmed bookings can be checked in.',
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/bookings/{id}/checkout': {
+      patch: {
+        summary: 'Check-out xe khỏi bãi đỗ',
+        description:
+          'Admin/Owner/Staff xác nhận xe đã check-out khỏi bãi đỗ, chuyển trạng thái booking từ "active" sang "completed".',
+        tags: ['Đặt chỗ'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/BookingIdParam' }],
+        responses: {
+          200: {
+            description: 'Check-out thành công.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: {
+                      type: 'string',
+                      example: 'Vehicle checked out successfully.',
+                    },
+                    data: { $ref: '#/components/schemas/Booking' },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Chỉ có booking "active" mới có thể check-out.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: {
+                  success: false,
+                  message: 'Only active bookings can be checked out.',
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+
+    // --- ADMIN ROUTES ---
+    '/admin/users': {
+      get: {
+        summary: 'Lấy tất cả người dùng (Admin)',
+        description: 'Admin lấy danh sách tất cả người dùng trong hệ thống.',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Danh sách người dùng.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/User' },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+      post: {
+        summary: 'Tạo người dùng mới (Admin)',
+        description: 'Admin tạo người dùng với bất kỳ role nào.',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/UserInput' },
+            },
+          },
+        },
+        responses: {
+          201: { $ref: '#/components/schemas/LoginSuccessResponse' },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/admin/users/{id}': {
+      put: {
+        summary: 'Cập nhật trạng thái xác minh người dùng (Admin)',
+        description: 'Admin cập nhật verificationStatus của người dùng.',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/UserIdParam' }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    enum: ['pending', 'verified', 'rejected'],
+                    example: 'verified',
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Cập nhật thành công.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/GenericSuccessResponse' },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+      delete: {
+        summary: 'Xóa mềm người dùng (Admin)',
+        description: 'Admin xóa mềm người dùng.',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/UserIdParam' }],
+        responses: {
+          200: { $ref: '#/components/schemas/GenericSuccessResponse' },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/admin/owners': {
+      get: {
+        summary: 'Lấy tất cả chủ bãi đỗ xe (Admin)',
+        description: 'Admin lấy danh sách tất cả chủ bãi đỗ xe.',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Danh sách chủ bãi đỗ xe.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/User' },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/admin/owners/{id}': {
+      put: {
+        summary: 'Cập nhật trạng thái chủ bãi đỗ xe (Admin)',
+        description: 'Admin cập nhật verificationStatus của chủ bãi đỗ xe.',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/UserIdParam' }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    enum: ['pending', 'verified', 'rejected'],
+                    example: 'verified',
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { $ref: '#/components/schemas/GenericSuccessResponse' },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+      delete: {
+        summary: 'Xóa mềm chủ bãi đỗ xe (Admin)',
+        description: 'Admin xóa mềm chủ bãi đỗ xe.',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/UserIdParam' }],
+        responses: {
+          200: { $ref: '#/components/schemas/GenericSuccessResponse' },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/admin/parking-lots': {
+      get: {
+        summary: 'Lấy tất cả bãi đỗ xe (Admin)',
+        description: 'Admin lấy danh sách tất cả bãi đỗ xe.',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Danh sách bãi đỗ xe.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/ParkingLot' },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/admin/parking-lots/{id}': {
+      put: {
+        summary: 'Cập nhật trạng thái bãi đỗ xe (Admin)',
+        description: 'Admin cập nhật trạng thái active/inactive của bãi đỗ xe.',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
+        responses: {
+          200: {
+            description: 'Cập nhật thành công.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Parking lot status updated successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/UnauthorizedError' },
+          403: { $ref: '#/components/responses/ForbiddenError' },
+          404: { $ref: '#/components/responses/NotFoundError' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+      delete: {
+        summary: 'Xóa mềm bãi đỗ xe (Admin)',
+        description: 'Admin xóa mềm bãi đỗ xe.',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
+        responses: {
+          200: {
+            description: 'Xóa thành công.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example:
+                        'Parking Lot and associated spots soft deleted successfully',
+                    },
+                  },
+                },
+              },
+            },
+          },
           401: { $ref: '#/components/responses/UnauthorizedError' },
           403: { $ref: '#/components/responses/ForbiddenError' },
           404: { $ref: '#/components/responses/NotFoundError' },
