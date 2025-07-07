@@ -1,8 +1,8 @@
 const express = require("express");
 const {
   createBooking,
-  getMyBookings,
-  getBookingById,
+  getUserBookings,
+  getBookingDetails,
   cancelBooking,
   checkInVehicle,
   checkOutVehicle,
