@@ -1,14 +1,15 @@
 const express = require('express');
 const {
+  getOwnerParkingLots,
   createParkingLot,
-  getAllParkingLots,
-  getParkingLotById,
-  updateParkingLot,
-  softDeleteParkingLot,
-  getMyParkingLots,
 } = require('../controllers/parkingLot.controller');
 const { protect, authorizeRoles } = require('../middlewares/auth');
 
 const router = express.Router();
+
+router
+  .route('/')
+  .get(protect, getOwnerParkingLots)
+  .post(protect, createParkingLot);
 
 module.exports = router;
