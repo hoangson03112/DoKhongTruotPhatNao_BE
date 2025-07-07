@@ -590,40 +590,63 @@ const swaggerConfig = {
       },
       ParkingLotInput: {
         type: 'object',
-        required: ['name', 'address', 'location', 'hourlyRate'],
+        required: ['name', 'address', 'coordinates', 'capacity'],
         properties: {
-          name: { type: 'string', example: 'Central Parking Lot' },
-          description: {
+          name: {
             type: 'string',
-            example: 'Secure parking in city center',
+            example: 'Central Parking Lot',
+            description: 'Tên bãi đỗ xe',
           },
           address: {
             type: 'string',
             example: '123 Main Street, District 1, HCMC',
+            description: 'Địa chỉ bãi đỗ xe',
           },
-          location: {
+          coordinates: {
             type: 'object',
+            required: ['lat', 'lng'],
             properties: {
-              lat: { type: 'number', format: 'float', example: 10.8231 },
-              lng: { type: 'number', format: 'float', example: 106.6297 },
+              lat: {
+                type: 'number',
+                format: 'float',
+                example: 10.8231,
+                description: 'Vĩ độ',
+              },
+              lng: {
+                type: 'number',
+                format: 'float',
+                example: 106.6297,
+                description: 'Kinh độ',
+              },
             },
+            description: 'Tọa độ GPS của bãi đỗ xe',
           },
-          hourlyRate: { type: 'number', format: 'float', example: 15000 },
-          imageUrls: {
+          capacity: {
+            type: 'integer',
+            minimum: 1,
+            example: 100,
+            description: 'Sức chứa tối đa của bãi đỗ xe (số chỗ)',
+          },
+          pricing: {
+            type: 'array',
+            items: {
+              type: 'string',
+              format: 'ObjectId',
+              example: '60d0fe4f3b7d1e0015f8c8b2',
+            },
+            description:
+              'Mảng ID của các gói giá. Nếu không cung cấp, hệ thống sẽ tạo pricing mặc định.',
+            nullable: true,
+          },
+          images: {
             type: 'array',
             items: { type: 'string', format: 'url' },
-            example: ['https://example.com/parking1.jpg'],
-          },
-          contactPhone: { type: 'string', example: '0901234567' },
-          contactEmail: {
-            type: 'string',
-            format: 'email',
-            example: 'contact@parking.com',
-          },
-          openingHours: {
-            type: 'array',
-            items: { type: 'string' },
-            example: ['Monday: 6:00-22:00', 'Tuesday: 6:00-22:00'],
+            example: [
+              'https://example.com/parking1.jpg',
+              'https://example.com/parking2.jpg',
+            ],
+            description: 'Mảng URL hình ảnh của bãi đỗ xe',
+            nullable: true,
           },
         },
       },
@@ -1107,66 +1130,13 @@ const swaggerConfig = {
         },
       },
     },
-    '/users': {
-      get: {
-        summary: 'Lấy tất cả người dùng (Chỉ Admin)',
-        description:
-          'Trả về danh sách tất cả người dùng trong hệ thống. Yêu cầu quyền Admin.',
-        tags: ['Người dùng', 'Admin'],
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: 'Danh sách người dùng.',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'array',
-                  items: { $ref: '#/components/schemas/User' },
-                },
-              },
-            },
-          },
-          401: { $ref: '#/components/responses/UnauthorizedError' },
-          403: { $ref: '#/components/responses/ForbiddenError' },
-          500: { $ref: '#/components/responses/ServerError' },
-        },
-      },
-    },
-    '/users/{id}': {
-      delete: {
-        summary: 'Xóa mềm người dùng theo ID (Chỉ Admin)',
-        description:
-          'Đánh dấu một người dùng là đã xóa (soft delete). Yêu cầu quyền Admin.',
-        tags: ['Người dùng', 'Admin'],
-        security: [{ bearerAuth: [] }],
-        parameters: [{ $ref: '#/components/parameters/UserIdParam' }],
-        responses: {
-          200: {
-            description: 'Người dùng đã được xóa mềm thành công.',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/GenericSuccessResponse' },
-                example: {
-                  success: true,
-                  message: 'User soft deleted successfully',
-                },
-              },
-            },
-          },
-          401: { $ref: '#/components/responses/UnauthorizedError' },
-          403: { $ref: '#/components/responses/ForbiddenError' },
-          404: { $ref: '#/components/responses/NotFoundError' },
-          500: { $ref: '#/components/responses/ServerError' },
-        },
-      },
-    },
 
-    // --- PARKING LOT ROUTES ---
+    // --- PARKING LOT ROUTES (Public) ---
     '/parking-lots': {
       get: {
         summary: 'Lấy tất cả bãi đỗ xe (Public)',
         description:
-          'Trả về danh sách tất cả bãi đỗ xe có sẵn (public endpoint).',
+          'Trả về danh sách tất cả bãi đỗ xe có sẵn cho người dùng tìm kiếm.',
         tags: ['Bãi đỗ xe'],
         responses: {
           200: {
@@ -1193,6 +1163,37 @@ const swaggerConfig = {
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/ParkingLotInput' },
+              examples: {
+                basicParkingLot: {
+                  summary: 'Bãi đỗ xe cơ bản (chỉ required fields)',
+                  value: {
+                    name: 'Bãi Đỗ Xe Trung Tâm',
+                    address: '123 Đường Lê Lợi, Quận 1, TP.HCM',
+                    coordinates: {
+                      lat: 10.8231,
+                      lng: 106.6297,
+                    },
+                    capacity: 100,
+                  },
+                },
+                fullParkingLot: {
+                  summary: 'Bãi đỗ xe đầy đủ thông tin',
+                  value: {
+                    name: 'Parking Lot VinCom Center',
+                    address: '70-72 Lê Thánh Tôn, Quận 1, TP.HCM',
+                    coordinates: {
+                      lat: 10.7769,
+                      lng: 106.7009,
+                    },
+                    capacity: 200,
+                    pricing: ['60d0fe4f3b7d1e0015f8c8b2'],
+                    images: [
+                      'https://example.com/parking-entrance.jpg',
+                      'https://example.com/parking-interior.jpg',
+                    ],
+                  },
+                },
+              },
             },
           },
         },
@@ -1201,11 +1202,53 @@ const swaggerConfig = {
             description: 'Bãi đỗ xe được tạo thành công.',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/ParkingLot' },
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: {
+                      type: 'string',
+                      example: 'Parking lot created successfully',
+                    },
+                    data: { $ref: '#/components/schemas/ParkingLot' },
+                  },
+                },
               },
             },
           },
-          400: { $ref: '#/components/responses/BadRequest' },
+          400: {
+            description:
+              'Yêu cầu không hợp lệ (thiếu field bắt buộc, dữ liệu không đúng định dạng).',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                examples: {
+                  missingFields: {
+                    summary: 'Thiếu trường bắt buộc',
+                    value: {
+                      success: false,
+                      message:
+                        'Missing required fields: name, address, coordinates, capacity',
+                    },
+                  },
+                  invalidCoordinates: {
+                    summary: 'Coordinates không hợp lệ',
+                    value: {
+                      success: false,
+                      message: 'Coordinates must include lat and lng',
+                    },
+                  },
+                  invalidCapacity: {
+                    summary: 'Capacity không hợp lệ',
+                    value: {
+                      success: false,
+                      message: 'Capacity must be a positive number',
+                    },
+                  },
+                },
+              },
+            },
+          },
           401: { $ref: '#/components/responses/UnauthorizedError' },
           403: { $ref: '#/components/responses/ForbiddenError' },
           500: { $ref: '#/components/responses/ServerError' },
@@ -1215,7 +1258,8 @@ const swaggerConfig = {
     '/parking-lots/reservations': {
       get: {
         summary: 'Lấy bãi đỗ xe của chủ sở hữu',
-        description: 'Parking Owner lấy danh sách bãi đỗ xe của mình.',
+        description:
+          'Parking Owner lấy danh sách bãi đỗ xe của mình để quản lý.',
         tags: ['Bãi đỗ xe'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -1239,7 +1283,8 @@ const swaggerConfig = {
     '/parking-lots/reservations/{id}': {
       get: {
         summary: 'Lấy chi tiết bãi đỗ xe cho Owner',
-        description: 'Parking Owner lấy chi tiết một bãi đỗ xe cụ thể.',
+        description:
+          'Parking Owner lấy chi tiết một bãi đỗ xe cụ thể để quản lý.',
         tags: ['Bãi đỗ xe'],
         security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
@@ -1261,9 +1306,9 @@ const swaggerConfig = {
     },
     '/parking-lots/{id}': {
       get: {
-        summary: 'Lấy chi tiết bãi đỗ xe theo ID',
+        summary: 'Lấy chi tiết bãi đỗ xe theo ID (Public)',
         description:
-          'Lấy thông tin chi tiết của một bãi đỗ xe cụ thể (public endpoint).',
+          'Lấy thông tin chi tiết của một bãi đỗ xe cụ thể để người dùng xem thông tin trước khi đặt chỗ.',
         tags: ['Bãi đỗ xe'],
         parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
         responses: {
@@ -1275,66 +1320,6 @@ const swaggerConfig = {
               },
             },
           },
-          404: { $ref: '#/components/responses/NotFoundError' },
-          500: { $ref: '#/components/responses/ServerError' },
-        },
-      },
-      put: {
-        summary: 'Cập nhật trạng thái bãi đỗ xe',
-        description:
-          'Owner hoặc Admin toggle trạng thái active/inactive của bãi đỗ xe.',
-        tags: ['Bãi đỗ xe'],
-        security: [{ bearerAuth: [] }],
-        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
-        responses: {
-          200: {
-            description: 'Cập nhật trạng thái thành công.',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                      example: 'Parking lot status updated successfully',
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: { $ref: '#/components/responses/UnauthorizedError' },
-          403: { $ref: '#/components/responses/ForbiddenError' },
-          404: { $ref: '#/components/responses/NotFoundError' },
-          500: { $ref: '#/components/responses/ServerError' },
-        },
-      },
-      delete: {
-        summary: 'Xóa mềm bãi đỗ xe',
-        description: 'Owner hoặc Admin xóa mềm bãi đỗ xe.',
-        tags: ['Bãi đỗ xe'],
-        security: [{ bearerAuth: [] }],
-        parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
-        responses: {
-          200: {
-            description: 'Xóa thành công.',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    message: {
-                      type: 'string',
-                      example:
-                        'Parking Lot and associated spots soft deleted successfully',
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: { $ref: '#/components/responses/UnauthorizedError' },
-          403: { $ref: '#/components/responses/ForbiddenError' },
           404: { $ref: '#/components/responses/NotFoundError' },
           500: { $ref: '#/components/responses/ServerError' },
         },
@@ -1377,6 +1362,37 @@ const swaggerConfig = {
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/ParkingLotInput' },
+              examples: {
+                basicParkingLot: {
+                  summary: 'Bãi đỗ xe cơ bản (chỉ required fields)',
+                  value: {
+                    name: 'Bãi Đỗ Xe Trung Tâm',
+                    address: '123 Đường Lê Lợi, Quận 1, TP.HCM',
+                    coordinates: {
+                      lat: 10.8231,
+                      lng: 106.6297,
+                    },
+                    capacity: 100,
+                  },
+                },
+                fullParkingLot: {
+                  summary: 'Bãi đỗ xe đầy đủ thông tin',
+                  value: {
+                    name: 'Parking Lot VinCom Center',
+                    address: '70-72 Lê Thánh Tôn, Quận 1, TP.HCM',
+                    coordinates: {
+                      lat: 10.7769,
+                      lng: 106.7009,
+                    },
+                    capacity: 200,
+                    pricing: ['60d0fe4f3b7d1e0015f8c8b2'],
+                    images: [
+                      'https://example.com/parking-entrance.jpg',
+                      'https://example.com/parking-interior.jpg',
+                    ],
+                  },
+                },
+              },
             },
           },
         },
@@ -1385,11 +1401,53 @@ const swaggerConfig = {
             description: 'Bãi đỗ xe được tạo thành công.',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/ParkingLot' },
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: {
+                      type: 'string',
+                      example: 'Parking lot created successfully',
+                    },
+                    data: { $ref: '#/components/schemas/ParkingLot' },
+                  },
+                },
               },
             },
           },
-          400: { $ref: '#/components/responses/BadRequest' },
+          400: {
+            description:
+              'Yêu cầu không hợp lệ (thiếu field bắt buộc, dữ liệu không đúng định dạng).',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                examples: {
+                  missingFields: {
+                    summary: 'Thiếu trường bắt buộc',
+                    value: {
+                      success: false,
+                      message:
+                        'Missing required fields: name, address, coordinates, capacity',
+                    },
+                  },
+                  invalidCoordinates: {
+                    summary: 'Coordinates không hợp lệ',
+                    value: {
+                      success: false,
+                      message: 'Coordinates must include lat and lng',
+                    },
+                  },
+                  invalidCapacity: {
+                    summary: 'Capacity không hợp lệ',
+                    value: {
+                      success: false,
+                      message: 'Capacity must be a positive number',
+                    },
+                  },
+                },
+              },
+            },
+          },
           401: { $ref: '#/components/responses/UnauthorizedError' },
           403: { $ref: '#/components/responses/ForbiddenError' },
           500: { $ref: '#/components/responses/ServerError' },
@@ -1463,7 +1521,7 @@ const swaggerConfig = {
       get: {
         summary: 'Lấy danh sách đặt chỗ theo bãi đỗ xe',
         description: 'Owner lấy tất cả đặt chỗ của một bãi đỗ xe cụ thể.',
-        tags: ['Đặt chỗ (Chủ sở hữu)'],
+        tags: ['Parking Owner'],
         security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/ParkingLotIdParam' }],
         responses: {
@@ -1495,7 +1553,7 @@ const swaggerConfig = {
       put: {
         summary: 'Cập nhật đặt chỗ (Owner)',
         description: 'Owner cập nhật trạng thái đặt chỗ.',
-        tags: ['Đặt chỗ (Chủ sở hữu)'],
+        tags: ['Parking Owner'],
         security: [{ bearerAuth: [] }],
         parameters: [{ $ref: '#/components/parameters/BookingIdParam' }],
         requestBody: {

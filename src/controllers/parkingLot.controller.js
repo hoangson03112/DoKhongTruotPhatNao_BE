@@ -1,41 +1,80 @@
-const ParkingLot = require("../models/ParkingLot");
-const User = require("../models/User");
+const ParkingLot = require('../models/ParkingLot');
+const User = require('../models/User');
+const Pricing = require('../models/Pricing');
 
 // @desc    Create a new parking lot
 // @route   POST /api/parkinglots
 // @access  Private (Admin/Parking_Owner)
 const createParkingLot = async (req, res, next) => {
   try {
-    const {
-      name,
-      description,
-      address,
-      location,
-      hourlyRate,
-      imageUrls,
-      contactPhone,
-      contactEmail,
-      openingHours,
-    } = req.body;
+    const { name, address, coordinates, capacity, pricing, images } = req.body;
+
+    // Validation for required fields
+    if (!name || !address || !coordinates || !capacity) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'Missing required fields: name, address, coordinates, capacity',
+      });
+    }
+
+    // Validate coordinates structure
+    if (!coordinates.lat || !coordinates.lng) {
+      return res.status(400).json({
+        success: false,
+        message: 'Coordinates must include lat and lng',
+      });
+    }
+
+    // Validate capacity is positive number
+    if (capacity <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Capacity must be a positive number',
+      });
+    }
+
+    // Handle pricing - create default pricing if not provided
+    let pricingArray = [];
+    if (pricing && Array.isArray(pricing) && pricing.length > 0) {
+      pricingArray = pricing;
+    } else {
+      // Create or find default hourly pricing
+      let defaultPricing = await Pricing.findOne({ type: 'hourly' });
+      if (!defaultPricing) {
+        defaultPricing = new Pricing({
+          type: 'hourly',
+          price: 5000, // Default price 5000 VND per hour
+        });
+        defaultPricing = await defaultPricing.save();
+      }
+      pricingArray.push(defaultPricing._id);
+    }
 
     const newParkingLot = new ParkingLot({
       name,
-      description,
       address,
-      location,
-      hourlyRate,
-      imageUrls,
-      contactPhone,
-      contactEmail,
-      owner: req.user._id, // Thống nhất dùng 'owner'
-      openingHours: openingHours || [],
-      totalSpots: 0, // Initialize to 0, spots will be added later
-      availableSpots: 0,
+      coordinates,
+      capacity,
+      pricing: pricingArray,
+      images: images || [],
+      owner: req.user._id,
+      availableSlots: capacity, // Will be set by pre-save hook too, but explicit is good
     });
 
     const createdLot = await newParkingLot.save();
-    res.status(201).json(createdLot);
+
+    // Populate owner and pricing for response
+    await createdLot.populate('owner', 'name email username');
+    await createdLot.populate('pricing');
+
+    res.status(201).json({
+      success: true,
+      message: 'Parking lot created successfully',
+      data: createdLot,
+    });
   } catch (error) {
+    console.error('Error creating parking lot:', error.message);
     next(error);
   }
 };
@@ -46,7 +85,7 @@ const createParkingLot = async (req, res, next) => {
 const getAllParkingLots = async (req, res, next) => {
   try {
     // You might add filtering/pagination here
-    const parkingLots = await ParkingLot.find({}).populate("owner");
+    const parkingLots = await ParkingLot.find({}).populate('owner');
     res.status(200).json(parkingLots);
   } catch (error) {
     next(error);
@@ -57,7 +96,7 @@ const getParkingLotById = async (req, res, next) => {
   try {
     const parkingLot = await ParkingLot.findById(req.params.id);
     if (!parkingLot) {
-      return res.status(404).json({ message: "Parking Lot not found" });
+      return res.status(404).json({ message: 'Parking Lot not found' });
     }
 
     res.status(200).json(parkingLot);
@@ -74,26 +113,30 @@ const updateParkingLot = async (req, res, next) => {
     const parkingLot = await ParkingLot.findById(req.params.id);
 
     if (!parkingLot) {
-      return res.status(404).json({ message: "Parking Lot not found" });
+      return res.status(404).json({ message: 'Parking Lot not found' });
     }
     // Authorization check: Only owner or admin can update
     if (
       parkingLot.owner.toString() !== req.user._id.toString() &&
-      req.user.role !== "admin"
+      req.user.role !== 'admin'
     ) {
       return res
         .status(403)
-        .json({ message: "Not authorized to update this parking lot" });
+        .json({ message: 'Not authorized to update this parking lot' });
     }
-    if (parkingLot.status === "active") {
-      parkingLot.status = "inactive";
+    if (parkingLot.status === 'active') {
+      parkingLot.status = 'inactive';
     } else {
-      parkingLot.status = "active";
+      //Bonus: Đảm bảo trạng thái verificationStatus đã chuyển thành verified nếu trước đó vẫn là pending
+      if (parkingLot.verificationStatus === 'pending') {
+        parkingLot.verificationStatus = 'verified';
+      }
+      parkingLot.status = 'active';
     }
 
     await parkingLot.save();
     res.status(200).json({
-      message: "Parking lot status updated successfully",
+      message: 'Parking lot status updated successfully',
     });
   } catch (error) {
     next(error);
@@ -107,16 +150,16 @@ const softDeleteParkingLot = async (req, res, next) => {
       isDeleted: false,
     });
     if (!parkingLot) {
-      return res.status(404).json({ message: "Parking Lot not found" });
+      return res.status(404).json({ message: 'Parking Lot not found' });
     }
     // Authorization check: Only owner or admin can delete
     if (
       parkingLot.owner.toString() !== req.user._id.toString() &&
-      req.user.role !== "admin"
+      req.user.role !== 'admin'
     ) {
       return res
         .status(403)
-        .json({ message: "Not authorized to delete this parking lot" });
+        .json({ message: 'Not authorized to delete this parking lot' });
     }
 
     parkingLot.isDeleted = true;
@@ -132,7 +175,7 @@ const softDeleteParkingLot = async (req, res, next) => {
     // );
 
     res.status(200).json({
-      message: "Parking Lot and associated spots soft deleted successfully",
+      message: 'Parking Lot and associated spots soft deleted successfully',
     });
   } catch (error) {
     next(error);
@@ -144,7 +187,7 @@ const softDeleteParkingLot = async (req, res, next) => {
 // @access  Private (Parking_Owner)
 const getMyParkingLots = async (req, res, next) => {
   try {
-    console.log("req.user", req.user);
+    console.log('req.user', req.user);
     const parkingLots = await ParkingLot.find({
       owner: req.user._id,
       isDeleted: false,
