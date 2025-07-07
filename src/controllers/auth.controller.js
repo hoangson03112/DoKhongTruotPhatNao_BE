@@ -1,5 +1,5 @@
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
+const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 
 // Helper để gửi token trong response
 const sendTokenResponse = (user, statusCode, res) => {
@@ -13,13 +13,13 @@ const sendTokenResponse = (user, statusCode, res) => {
   };
 
   // Nếu trong môi trường production, chỉ gửi cookie qua HTTPS
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     options.secure = true;
   }
 
   res
     .status(statusCode)
-    .cookie('token', token, options)
+    .cookie("token", token, options)
     .json({
       success: true,
       token,
@@ -51,19 +51,19 @@ const register = async (req, res, next) => {
     if (existingUser) {
       return res
         .status(400)
-        .json({ message: 'Username or Email already exists.' });
+        .json({ message: "Username or Email already exists." });
     }
 
     // Chỉ cho phép admin tạo các vai trò khác hoặc gán parkingLotAccess
-    let userRole = 'user';
+    let userRole = "user";
     let userParkingLotAccess = [];
 
-    if (req.user && req.user.role === 'admin') {
+    if (req.user && req.user.role === "admin") {
       // Chỉ admin mới có thể tạo user với role khác
-      if (['admin', 'parking_owner', 'staff'].includes(role)) {
+      if (["admin", "parking_owner", "staff"].includes(role)) {
         userRole = role;
       }
-      if (role === 'staff' && Array.isArray(parkingLotAccess)) {
+      if (role === "staff" && Array.isArray(parkingLotAccess)) {
         userParkingLotAccess = parkingLotAccess;
       }
     }
@@ -89,27 +89,28 @@ const register = async (req, res, next) => {
 // @access  Public
 const login = async (req, res, next) => {
   try {
+ 
     const { email, password } = req.body;
 
     // Validate email & password
     if (!email || !password) {
       return res
         .status(400)
-        .json({ message: 'Please enter an email and password' });
+        .json({ message: "Please enter an email and password" });
     }
 
     // Check for user
     const user = await User.findOne({ email, isDeleted: false }).select(
-      '+password'
+      "+password"
     ); // Select password explicitly
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     // Check if password matches
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     // Update last login time
@@ -129,10 +130,10 @@ const getMe = async (req, res, next) => {
   try {
     // req.user được lấy từ middleware protect
     const user = await User.findById(req.user._id).select(
-      '-password -refreshToken'
+      "-password -refreshToken"
     );
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
     res.status(200).json({
       success: true,
@@ -149,7 +150,7 @@ const getMe = async (req, res, next) => {
 const logout = async (req, res, next) => {
   // Bạn có thể xóa refreshToken từ DB nếu bạn muốn invalidate token đó
   // Ví dụ: const user = await User.findById(req.user._id); user.refreshToken = undefined; await user.save();
-  res.cookie('token', 'none', {
+  res.cookie("token", "none", {
     expires: new Date(Date.now() + 10 * 1000), // Hết hạn ngay lập tức
     httpOnly: true,
   });

@@ -60,9 +60,13 @@ const ParkingLotSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
+  deletedAt: {
+    type: Date,
+  },
 });
-
-ParkingLotSchema.index({ location: "2dsphere" });
-ParkingLotSchema.index({ ownerId: 1 });
 
 module.exports = mongoose.model("ParkingLot", ParkingLotSchema, "parkinglots");

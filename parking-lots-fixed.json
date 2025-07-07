@@ -1,0 +1,249 @@
+[
+  {
+    "_id": {
+      "$oid": "650c3d4e8f5e4b2a1c9d8e90"
+    },
+    "name": "Bãi đỗ xe Vincom Center Đồng Khởi",
+    "address": "72 Lê Thánh Tôn, Phường Bến Nghé, Quận 1, TP.HCM",
+    "coordinates": {
+      "lat": 10.7781156,
+      "lng": 106.7021006
+    },
+    "capacity": 500,
+    "availableSlots": 120,
+    "pricing": [
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e7f"
+      },
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e80"
+      }
+    ],
+    "owner": {
+      "$oid": "650a1b2c3d4e5f6789abcdef"
+    },
+    "images": [
+      "https://example.com/parking1_1.jpg",
+      "https://example.com/parking1_2.jpg"
+    ],
+    "parkingType": "official",
+    "verificationStatus": "verified",
+    "isDeleted": false,
+    "createdAt": {
+      "$date": "2024-01-15T10:30:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "650c3d4e8f5e4b2a1c9d8e91"
+    },
+    "name": "Bãi đỗ xe Diamond Plaza",
+    "address": "34 Lê Duẩn, Phường Bến Nghé, Quận 1, TP.HCM",
+    "coordinates": {
+      "lat": 10.7804415,
+      "lng": 106.6991312
+    },
+    "capacity": 300,
+    "availableSlots": 85,
+    "pricing": [
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e81"
+      }
+    ],
+    "owner": {
+      "$oid": "650a1b2c3d4e5f6789abcde0"
+    },
+    "images": [
+      "https://example.com/parking2_1.jpg"
+    ],
+    "parkingType": "official",
+    "verificationStatus": "verified",
+    "isDeleted": false,
+    "createdAt": {
+      "$date": "2024-01-15T11:00:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "650c3d4e8f5e4b2a1c9d8e92"
+    },
+    "name": "Bãi đỗ xe Chợ Bến Thành",
+    "address": "Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
+    "coordinates": {
+      "lat": 10.7722741,
+      "lng": 106.6981862
+    },
+    "capacity": 150,
+    "availableSlots": 45,
+    "pricing": [
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e82"
+      }
+    ],
+    "owner": {
+      "$oid": "650a1b2c3d4e5f6789abcde1"
+    },
+    "images": [],
+    "parkingType": "unofficial",
+    "verificationStatus": "pending",
+    "isDeleted": false,
+    "createdAt": {
+      "$date": "2024-01-15T11:30:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "650c3d4e8f5e4b2a1c9d8e93"
+    },
+    "name": "Bãi đỗ xe Landmark 81",
+    "address": "720A Điện Biên Phủ, Phường 22, Quận Bình Thạnh, TP.HCM",
+    "coordinates": {
+      "lat": 10.7954377,
+      "lng": 106.7215119
+    },
+    "capacity": 800,
+    "availableSlots": 200,
+    "pricing": [
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e83"
+      },
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e84"
+      }
+    ],
+    "owner": {
+      "$oid": "650a1b2c3d4e5f6789abcde2"
+    },
+    "images": [
+      "https://example.com/parking4_1.jpg",
+      "https://example.com/parking4_2.jpg",
+      "https://example.com/parking4_3.jpg"
+    ],
+    "parkingType": "official",
+    "verificationStatus": "verified",
+    "isDeleted": false,
+    "createdAt": {
+      "$date": "2024-01-15T12:00:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "650c3d4e8f5e4b2a1c9d8e94"
+    },
+    "name": "Bãi đỗ xe Nguyễn Huệ",
+    "address": "Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM",
+    "coordinates": {
+      "lat": 10.7743337,
+      "lng": 106.7012107
+    },
+    "capacity": 80,
+    "availableSlots": 25,
+    "pricing": [
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e85"
+      }
+    ],
+    "owner": {
+      "$oid": "650a1b2c3d4e5f6789abcde3"
+    },
+    "images": [
+      "https://example.com/parking5_1.jpg"
+    ],
+    "parkingType": "temporary",
+    "verificationStatus": "verified",
+    "isDeleted": false,
+    "createdAt": {
+      "$date": "2024-01-15T12:30:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "650c3d4e8f5e4b2a1c9d8e95"
+    },
+    "name": "Bãi đỗ xe Saigon Centre",
+    "address": "65 Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
+    "coordinates": {
+      "lat": 10.7731662,
+      "lng": 106.6999457
+    },
+    "capacity": 250,
+    "availableSlots": 60,
+    "pricing": [
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e86"
+      }
+    ],
+    "owner": {
+      "$oid": "650a1b2c3d4e5f6789abcde4"
+    },
+    "images": [],
+    "parkingType": "official",
+    "verificationStatus": "verified",
+    "isDeleted": false,
+    "createdAt": {
+      "$date": "2024-01-15T13:00:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "650c3d4e8f5e4b2a1c9d8e96"
+    },
+    "name": "Bãi đỗ xe Bitexco Financial Tower",
+    "address": "2 Hải Triều, Phường Bến Nghé, Quận 1, TP.HCM",
+    "coordinates": {
+      "lat": 10.7717861,
+      "lng": 106.7034160
+    },
+    "capacity": 400,
+    "availableSlots": 95,
+    "pricing": [
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e87"
+      },
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e88"
+      }
+    ],
+    "owner": {
+      "$oid": "650a1b2c3d4e5f6789abcde5"
+    },
+    "images": [
+      "https://example.com/parking7_1.jpg",
+      "https://example.com/parking7_2.jpg"
+    ],
+    "parkingType": "official",
+    "verificationStatus": "verified",
+    "isDeleted": false,
+    "createdAt": {
+      "$date": "2024-01-15T13:30:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "650c3d4e8f5e4b2a1c9d8e97"
+    },
+    "name": "Bãi đỗ xe Nhà Thờ Đức Bà",
+    "address": "01 Công xã Paris, Phường Bến Nghé, Quận 1, TP.HCM",
+    "coordinates": {
+      "lat": 10.7797438,
+      "lng": 106.6990835
+    },
+    "capacity": 50,
+    "availableSlots": 15,
+    "pricing": [
+      {
+        "$oid": "650c3d4e8f5e4b2a1c9d8e89"
+      }
+    ],
+    "owner": {
+      "$oid": "650a1b2c3d4e5f6789abcde6"
+    },
+    "images": [],
+    "parkingType": "unofficial",
+    "verificationStatus": "rejected",
+    "isDeleted": false,
+    "createdAt": {
+      "$date": "2024-01-15T14:00:00.000Z"
+    }
+  }
+] 

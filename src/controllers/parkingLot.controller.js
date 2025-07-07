@@ -1,5 +1,5 @@
-const ParkingLot = require('../models/ParkingLot');
-const User = require('../models/User');
+const ParkingLot = require("../models/ParkingLot");
+const User = require("../models/User");
 
 // @desc    Create a new parking lot
 // @route   POST /api/parkinglots
@@ -47,8 +47,8 @@ const getAllParkingLots = async (req, res, next) => {
   try {
     // You might add filtering/pagination here
     const parkingLots = await ParkingLot.find({ isDeleted: false }).populate(
-      'ownerId',
-      'username email'
+      "ownerId",
+      "username email"
     );
     res.status(200).json(parkingLots);
   } catch (error) {
@@ -56,21 +56,13 @@ const getAllParkingLots = async (req, res, next) => {
   }
 };
 
-// @desc    Get a single parking lot by ID
-// @route   GET /api/parkinglots/:id
-// @access  Public
 const getParkingLotById = async (req, res, next) => {
   try {
-    const parkingLot = await ParkingLot.findOne({
-      _id: req.params.id,
-      isDeleted: false,
-    }).populate('ownerId', 'username email');
+    const parkingLot = await ParkingLot.findById(req.params.id);
     if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking Lot not found' });
+      return res.status(404).json({ message: "Parking Lot not found" });
     }
-    // Update available spots on view (if not using queue/cache)
-    // parkingLot.availableSpots = await calculateAvailableSpots(parkingLot._id);
-    // await parkingLot.save(); // Save the updated availableSpots if you want it persistent
+
     res.status(200).json(parkingLot);
   } catch (error) {
     next(error);
@@ -78,25 +70,23 @@ const getParkingLotById = async (req, res, next) => {
 };
 
 // @desc    Update a parking lot
-// @route   PATCH /api/parkinglots/:id
+// @route   PUT /api/owner/parking-lots/:id
 // @access  Private (Admin/Parking_Owner)
 const updateParkingLot = async (req, res, next) => {
   try {
-    const parkingLot = await ParkingLot.findOne({
-      _id: req.params.id,
-      isDeleted: false,
-    });
+    const parkingLot = await ParkingLot.findById(req.params.id);
+
     if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking Lot not found' });
+      return res.status(404).json({ message: "Parking Lot not found" });
     }
     // Authorization check: Only owner or admin can update
     if (
-      parkingLot.ownerId.toString() !== req.user._id.toString() &&
-      req.user.role !== 'admin'
+      parkingLot.owner.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
     ) {
       return res
         .status(403)
-        .json({ message: 'Not authorized to update this parking lot' });
+        .json({ message: "Not authorized to update this parking lot" });
     }
 
     const {
@@ -132,9 +122,6 @@ const updateParkingLot = async (req, res, next) => {
   }
 };
 
-// @desc    Soft delete a parking lot
-// @route   DELETE /api/parkinglots/:id
-// @access  Private (Admin/Parking_Owner)
 const softDeleteParkingLot = async (req, res, next) => {
   try {
     const parkingLot = await ParkingLot.findOne({
@@ -142,16 +129,16 @@ const softDeleteParkingLot = async (req, res, next) => {
       isDeleted: false,
     });
     if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking Lot not found' });
+      return res.status(404).json({ message: "Parking Lot not found" });
     }
     // Authorization check: Only owner or admin can delete
     if (
-      parkingLot.ownerId.toString() !== req.user._id.toString() &&
-      req.user.role !== 'admin'
+      parkingLot.owner.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
     ) {
       return res
         .status(403)
-        .json({ message: 'Not authorized to delete this parking lot' });
+        .json({ message: "Not authorized to delete this parking lot" });
     }
 
     parkingLot.isDeleted = true;
@@ -167,7 +154,7 @@ const softDeleteParkingLot = async (req, res, next) => {
     // );
 
     res.status(200).json({
-      message: 'Parking Lot and associated spots soft deleted successfully',
+      message: "Parking Lot and associated spots soft deleted successfully",
     });
   } catch (error) {
     next(error);
@@ -179,8 +166,9 @@ const softDeleteParkingLot = async (req, res, next) => {
 // @access  Private (Parking_Owner)
 const getMyParkingLots = async (req, res, next) => {
   try {
+    console.log("req.user", req.user);
     const parkingLots = await ParkingLot.find({
-      ownerId: req.user._id,
+      owner: req.user._id,
       isDeleted: false,
     });
     res.status(200).json(parkingLots);

@@ -56,15 +56,13 @@ const BookingSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
-BookingSchema.index({ parkingLot: 1, status: 1 });
-BookingSchema.index({ user: 1, status: 1 });
 
 BookingSchema.pre("save", async function (next) {
   if (
     this.isNew ||
     this.isModified("startTime") ||
-    this.isModified("endTime") ||
-    this.isModified("pricingType")
+    this.isModified("timeCheckout") ||
+    this.isModified("licensePlate")
   ) {
     const parkingLot = await mongoose
       .model("ParkingLot")

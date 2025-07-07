@@ -1,9 +1,9 @@
-const Booking = require('../models/Booking');
-const ParkingLot = require('../models/ParkingLot');
+const Booking = require("../models/Booking");
+const ParkingLot = require("../models/ParkingLot");
 // const Payment = require('../models/Payment');
-const PersonalNotification = require('../models/PersonalNotifications');
-const { default: mongoose } = require('mongoose');
-const queueService = require('../utils/queueService'); // Import the queue service
+const PersonalNotification = require("../models/PersonalNotifications");
+const { default: mongoose } = require("mongoose");
+const queueService = require("../utils/queueService"); // Import the queue service
 
 // Helper to calculate booking amount
 const calculateAmount = (hourlyRate, startTime, endTime) => {
@@ -23,13 +23,13 @@ const createBooking = async (req, res, next) => {
 
     // Basic validation
     if (!parkingSpotId || !vehicleId || !startTime || !endTime) {
-      throw new Error('Missing required booking fields.');
+      throw new Error("Missing required booking fields.");
     }
     if (new Date(startTime) >= new Date(endTime)) {
-      throw new Error('Start time must be before end time.');
+      throw new Error("Start time must be before end time.");
     }
     if (new Date(startTime) < new Date()) {
-      throw new Error('Booking start time cannot be in the past.');
+      throw new Error("Booking start time cannot be in the past.");
     }
 
     const parkingSpot = await ParkingSpot.findOne({
@@ -37,17 +37,17 @@ const createBooking = async (req, res, next) => {
       isDeleted: false,
     }).session(session);
     if (!parkingSpot) {
-      throw new Error('Parking Spot not found or is deleted.');
+      throw new Error("Parking Spot not found or is deleted.");
     }
-    if (parkingSpot.status !== 'available') {
-      throw new Error('Parking Spot is not available or not bookable.');
+    if (parkingSpot.status !== "available") {
+      throw new Error("Parking Spot is not available or not bookable.");
     }
 
     const parkingLot = await ParkingLot.findById(
       parkingSpot.parkingLotId
     ).session(session);
     if (!parkingLot) {
-      throw new Error('Associated Parking Lot not found.');
+      throw new Error("Associated Parking Lot not found.");
     }
 
     // Calculate initial amount
@@ -63,7 +63,7 @@ const createBooking = async (req, res, next) => {
       vehicleId,
       startTime: new Date(startTime),
       endTime: new Date(endTime),
-      status: 'pending', // Awaiting payment/confirmation
+      status: "pending", // Awaiting payment/confirmation
       amount,
     });
 
@@ -74,11 +74,11 @@ const createBooking = async (req, res, next) => {
     // This makes the spot unavailable for other bookings immediately.
     await ParkingSpot.findByIdAndUpdate(
       parkingSpotId,
-      { status: 'reserved' },
+      { status: "reserved" },
       { new: true, session }
     );
     // Add job to queue for atomic availableSpots update
-    queueService.addJob('decrementAvailableSpots', {
+    queueService.addJob("decrementAvailableSpots", {
       parkingLotId: parkingLot._id,
       parkingSpotId,
     });
@@ -99,9 +99,9 @@ const createBooking = async (req, res, next) => {
     // Send notification to user (e.g., booking confirmation)
     const notification = new PersonalNotification({
       userId: req.user._id,
-      title: 'Booking Confirmation',
+      title: "Booking Confirmation",
       message: `Your booking for spot ${parkingSpot.spotNumber} at ${parkingLot.name} is pending payment. Amount: ${amount} VND.`,
-      type: 'booking_confirmation',
+      type: "booking_confirmation",
       relatedId: createdBooking._id,
     });
     await notification.save({ session });
@@ -116,17 +116,14 @@ const createBooking = async (req, res, next) => {
   }
 };
 
-// @desc    Get all bookings for the authenticated user
-// @route   GET /api/bookings/my
-// @access  Private (User)
 const getMyBookings = async (req, res, next) => {
   try {
     const bookings = await Booking.find({
       userId: req.user._id,
       isDeleted: false,
     })
-      .populate('parkingSpotId')
-      .populate('vehicleId')
+      .populate("parkingSpotId")
+      .populate("vehicleId")
       .sort({ createdAt: -1 });
     res.status(200).json(bookings);
   } catch (error) {
@@ -143,12 +140,12 @@ const getBookingById = async (req, res, next) => {
       _id: req.params.id,
       isDeleted: false,
     })
-      .populate('userId', 'name email phone')
-      .populate('parkingSpotId')
-      .populate('vehicleId');
+      .populate("userId", "name email phone")
+      .populate("parkingSpotId")
+      .populate("vehicleId");
 
     if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
+      return res.status(404).json({ message: "Booking not found" });
     }
 
     // Authorization: User can view their own booking. Admin/Staff/Owner can view any.
@@ -157,17 +154,17 @@ const getBookingById = async (req, res, next) => {
     );
     const isAuthorized =
       booking.userId.toString() === req.user._id.toString() ||
-      req.user.role === 'admin' ||
-      (req.user.role === 'parking_owner' &&
+      req.user.role === "admin" ||
+      (req.user.role === "parking_owner" &&
         parkingLot &&
         parkingLot.ownerId.toString() === req.user._id.toString()) ||
-      (req.user.role === 'staff' &&
+      (req.user.role === "staff" &&
         req.user.parkingLotAccess.includes(parkingLot._id.toString())); // Assuming staff has parkingLotAccess array
 
     if (!isAuthorized) {
       return res
         .status(403)
-        .json({ message: 'Not authorized to view this booking' });
+        .json({ message: "Not authorized to view this booking" });
     }
 
     res.status(200).json(booking);
@@ -189,10 +186,10 @@ const cancelBooking = async (req, res, next) => {
     }).session(session);
 
     if (!booking) {
-      throw new Error('Booking not found');
+      throw new Error("Booking not found");
     }
-    if (booking.status === 'completed' || booking.status === 'cancelled') {
-      throw new Error('Booking cannot be cancelled in its current status.');
+    if (booking.status === "completed" || booking.status === "cancelled") {
+      throw new Error("Booking cannot be cancelled in its current status.");
     }
 
     // Authorization
@@ -205,27 +202,27 @@ const cancelBooking = async (req, res, next) => {
 
     const isAuthorized =
       booking.userId.toString() === req.user._id.toString() || // User cancelling their own booking
-      req.user.role === 'admin' ||
-      (req.user.role === 'parking_owner' &&
+      req.user.role === "admin" ||
+      (req.user.role === "parking_owner" &&
         parkingLot &&
         parkingLot.ownerId.toString() === req.user._id.toString()) ||
-      (req.user.role === 'staff' &&
+      (req.user.role === "staff" &&
         req.user.parkingLotAccess.includes(parkingLot._id.toString()));
 
     if (!isAuthorized) {
-      throw new Error('Not authorized to cancel this booking.');
+      throw new Error("Not authorized to cancel this booking.");
     }
 
-    booking.status = 'cancelled';
+    booking.status = "cancelled";
     await booking.save({ session });
 
     // Update ParkingSpot status to 'available' and increment availableSpots via queue
     await ParkingSpot.findByIdAndUpdate(
       booking.parkingSpotId,
-      { status: 'available' },
+      { status: "available" },
       { new: true, session }
     );
-    queueService.addJob('incrementAvailableSpots', {
+    queueService.addJob("incrementAvailableSpots", {
       parkingLotId: parkingSpot.parkingLotId,
       parkingSpotId: booking.parkingSpotId,
     });
@@ -241,9 +238,9 @@ const cancelBooking = async (req, res, next) => {
     // Send cancellation notification
     const notification = new PersonalNotification({
       userId: booking.userId,
-      title: 'Booking Cancelled',
+      title: "Booking Cancelled",
       message: `Your booking for spot ${parkingSpot.spotNumber} at ${parkingLot.name} has been cancelled.`,
-      type: 'booking_cancellation',
+      type: "booking_cancellation",
       relatedId: booking._id,
     });
     await notification.save({ session });
@@ -251,7 +248,7 @@ const cancelBooking = async (req, res, next) => {
     await session.commitTransaction();
     res
       .status(200)
-      .json({ message: 'Booking cancelled successfully', booking });
+      .json({ message: "Booking cancelled successfully", booking });
   } catch (error) {
     await session.abortTransaction();
     next(error);
@@ -272,13 +269,13 @@ const checkInVehicle = async (req, res, next) => {
       isDeleted: false,
     }).session(session);
     if (!booking) {
-      throw new Error('Booking not found');
+      throw new Error("Booking not found");
     }
     if (booking.checkInTime) {
-      throw new Error('Vehicle already checked in.');
+      throw new Error("Vehicle already checked in.");
     }
-    if (booking.status === 'cancelled' || booking.status === 'completed') {
-      throw new Error('Cannot check in a cancelled or completed booking.');
+    if (booking.status === "cancelled" || booking.status === "completed") {
+      throw new Error("Cannot check in a cancelled or completed booking.");
     }
 
     // Authorization check (staff/owner/admin)
@@ -290,15 +287,15 @@ const checkInVehicle = async (req, res, next) => {
     ).session(session);
 
     const isAuthorized =
-      req.user.role === 'admin' ||
-      (req.user.role === 'parking_owner' &&
+      req.user.role === "admin" ||
+      (req.user.role === "parking_owner" &&
         parkingLot &&
         parkingLot.ownerId.toString() === req.user._id.toString()) ||
-      (req.user.role === 'staff' &&
+      (req.user.role === "staff" &&
         req.user.parkingLotAccess.includes(parkingLot._id.toString()));
 
     if (!isAuthorized) {
-      throw new Error('Not authorized to check in this vehicle.');
+      throw new Error("Not authorized to check in this vehicle.");
     }
 
     booking.checkInTime = new Date();
@@ -308,14 +305,14 @@ const checkInVehicle = async (req, res, next) => {
     // If pay on exit, it remains 'pending' then 'active'.
     // For simplicity here, we assume a successful check-in makes it 'active'.
     // If you have a payment step, you might check paymentStatus === 'paid' here.
-    booking.status = 'active';
+    booking.status = "active";
 
     await booking.save({ session });
 
     // Update ParkingSpot status from 'reserved' to 'occupied'
     await ParkingSpot.findByIdAndUpdate(
       booking.parkingSpotId,
-      { status: 'occupied' },
+      { status: "occupied" },
       { new: true, session }
     );
     // availableSpots should already be decremented when booking was created (reserved)
@@ -324,7 +321,7 @@ const checkInVehicle = async (req, res, next) => {
     await session.commitTransaction();
     res
       .status(200)
-      .json({ message: 'Vehicle checked in successfully', booking });
+      .json({ message: "Vehicle checked in successfully", booking });
   } catch (error) {
     await session.abortTransaction();
     next(error);
@@ -345,16 +342,16 @@ const checkOutVehicle = async (req, res, next) => {
       isDeleted: false,
     }).session(session);
     if (!booking) {
-      throw new Error('Booking not found');
+      throw new Error("Booking not found");
     }
     if (!booking.checkInTime) {
-      throw new Error('Vehicle has not checked in yet.');
+      throw new Error("Vehicle has not checked in yet.");
     }
     if (booking.checkOutTime) {
-      throw new Error('Vehicle already checked out.');
+      throw new Error("Vehicle already checked out.");
     }
-    if (booking.status === 'cancelled') {
-      throw new Error('Cannot check out a cancelled booking.');
+    if (booking.status === "cancelled") {
+      throw new Error("Cannot check out a cancelled booking.");
     }
 
     // Authorization check
@@ -366,19 +363,19 @@ const checkOutVehicle = async (req, res, next) => {
     ).session(session);
 
     const isAuthorized =
-      req.user.role === 'admin' ||
-      (req.user.role === 'parking_owner' &&
+      req.user.role === "admin" ||
+      (req.user.role === "parking_owner" &&
         parkingLot &&
         parkingLot.ownerId.toString() === req.user._id.toString()) ||
-      (req.user.role === 'staff' &&
+      (req.user.role === "staff" &&
         req.user.parkingLotAccess.includes(parkingLot._id.toString()));
 
     if (!isAuthorized) {
-      throw new Error('Not authorized to check out this vehicle.');
+      throw new Error("Not authorized to check out this vehicle.");
     }
 
     booking.checkOutTime = new Date();
-    booking.status = 'completed';
+    booking.status = "completed";
 
     // Calculate actual duration and overtime fee
     const actualDurationMs =
@@ -415,10 +412,10 @@ const checkOutVehicle = async (req, res, next) => {
     // Update ParkingSpot status back to 'available' and increment availableSpots via queue
     await ParkingSpot.findByIdAndUpdate(
       booking.parkingSpotId,
-      { status: 'available' },
+      { status: "available" },
       { new: true, session }
     );
-    queueService.addJob('incrementAvailableSpots', {
+    queueService.addJob("incrementAvailableSpots", {
       parkingLotId: parkingSpot.parkingLotId,
       parkingSpotId: booking.parkingSpotId,
     });
@@ -435,9 +432,9 @@ const checkOutVehicle = async (req, res, next) => {
     // Send completion notification
     const notification = new PersonalNotification({
       userId: booking.userId,
-      title: 'Booking Completed',
+      title: "Booking Completed",
       message: `Your parking session at ${parkingLot.name} for spot ${parkingSpot.spotNumber} has ended. Total due: ${totalAmount} VND.`,
-      type: 'booking_completion',
+      type: "booking_completion",
       relatedId: booking._id,
     });
     await notification.save({ session });
@@ -445,7 +442,7 @@ const checkOutVehicle = async (req, res, next) => {
     await session.commitTransaction();
     res
       .status(200)
-      .json({ message: 'Vehicle checked out successfully', booking });
+      .json({ message: "Vehicle checked out successfully", booking });
   } catch (error) {
     await session.abortTransaction();
     next(error);
@@ -469,32 +466,32 @@ const getAllBookings = async (req, res, next) => {
     } = req.query;
     let query = { isDeleted: false };
 
-    console.log('status', status);
+    console.log("status", status);
 
     // Apply filters based on role
-    if (req.user.role === 'user') {
+    if (req.user.role === "user") {
       query.userId = req.user._id;
-    } else if (req.user.role === 'parking_owner') {
+    } else if (req.user.role === "parking_owner") {
       // Find parking lots owned by this user
       const ownedParkingLots = await ParkingLot.find({
         ownerId: req.user._id,
-      }).select('_id');
+      }).select("_id");
       const ownedLotIds = ownedParkingLots.map((lot) => lot._id);
       // Find parking spots within those lots
       const ownedParkingSpots = await ParkingSpot.find({
         parkingLotId: { $in: ownedLotIds },
-      }).select('_id');
+      }).select("_id");
       const ownedParkingSpotIds = ownedParkingSpots.map((spot) => spot._id);
       query.parkingSpotId = { $in: ownedParkingSpotIds };
-    } else if (req.user.role === 'staff') {
+    } else if (req.user.role === "staff") {
       // Assuming staff has access to specific parking lots via req.user.parkingLotAccess
       const accessibleParkingLots = await ParkingLot.find({
         _id: { $in: req.user.parkingLotAccess || [] },
-      }).select('_id');
+      }).select("_id");
       const accessibleLotIds = accessibleParkingLots.map((lot) => lot._id);
       const accessibleParkingSpots = await ParkingSpot.find({
         parkingLotId: { $in: accessibleLotIds },
-      }).select('_id');
+      }).select("_id");
       const accessibleParkingSpotIds = accessibleParkingSpots.map(
         (spot) => spot._id
       );
@@ -503,19 +500,19 @@ const getAllBookings = async (req, res, next) => {
 
     if (
       userId &&
-      (req.user.role === 'admin' || req.user.role === 'parking_owner')
+      (req.user.role === "admin" || req.user.role === "parking_owner")
     ) {
       query.userId = userId;
     }
     if (
       parkingLotId &&
-      (req.user.role === 'admin' ||
-        req.user.role === 'parking_owner' ||
-        req.user.role === 'staff')
+      (req.user.role === "admin" ||
+        req.user.role === "parking_owner" ||
+        req.user.role === "staff")
     ) {
       const spotsInLot = await ParkingSpot.find({
         parkingLotId: parkingLotId,
-      }).select('_id');
+      }).select("_id");
       const spotIdsInLot = spotsInLot.map((spot) => spot._id);
       query.parkingSpotId = { $in: spotIdsInLot };
     }
@@ -531,15 +528,15 @@ const getAllBookings = async (req, res, next) => {
     }
 
     const bookings = await Booking.find(query)
-      .populate('userId', 'name email phone')
+      .populate("userId", "name email phone")
       .populate({
-        path: 'parkingSpotId',
+        path: "parkingSpotId",
         populate: {
-          path: 'parkingLotId',
-          select: 'name address hourlyRate',
+          path: "parkingLotId",
+          select: "name address hourlyRate",
         },
       })
-      .populate('vehicleId')
+      .populate("vehicleId")
       .sort({ createdAt: -1 });
 
     res.status(200).json(bookings);
