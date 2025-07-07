@@ -22,6 +22,7 @@ router.get(
   authorizeRoles("parking_owner", "admin"),
   getMyParkingLots
 ); // Get parking lots owned by current user
+
 router.get(
   "/reservations/:id",
   protect,
@@ -31,7 +32,7 @@ router.get(
 
 router
   .route("/:id")
-
+  .get(getParkingLotById)
   .put(protect, authorizeRoles("admin", "parking_owner"), updateParkingLot)
   .delete(
     protect,

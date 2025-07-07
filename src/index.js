@@ -49,21 +49,23 @@ console.log(`Xem chi tiết tài liệu api tại ${apiBaseUrl}/api-docs`); // T
 const userRoutes = require('./routes/user.routes');
 const parkingLotRoutes = require('./routes/parkingLot.routes');
 const ownerParkingLotRoutes = require('./routes/owner.parkinglot.routes');
+const ownerReservationsRoutes = require('./routes/owner.reservations.routes');
 const bookingRoutes = require('./routes/booking.routes');
-// const reviewRoutes = require('./routes/review.routes');
+const reviewRoutes = require('./routes/review.routes');
 const notificationRoutes = require("./routes/notification.routes");
 const authRoutes = require("./routes/auth.routes");
-// const adminRoutes = require('./routes/admin.routes'); // Add if you create admin routes
+const adminRoutes = require('./routes/admin.routes');
 
 // Use Routes
 app.use('/api/users', userRoutes);
 app.use('/api/parking-lots', parkingLotRoutes);
 app.use('/api/owner/parking-lots', ownerParkingLotRoutes);
+app.use('/api/owner', ownerReservationsRoutes);
 app.use('/api/bookings', bookingRoutes);
-// app.use('/api/reviews', reviewRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/auth", authRoutes);
-// app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminRoutes);
 
 //-----------------Test deploying---------------------
 app.use('/test', (req, res, next) => {

@@ -1,19 +1,25 @@
-const User = require('../models/User');
-const Booking = require('../models/Booking');
-
-// @desc    Get user profile
-// @route   GET /api/users/profile
-// @access  Private (User)
+const User = require("../models/User");
+const Booking = require("../models/Booking");
+const getAllOwners = async (req, res, next) => {
+  try {
+    const owners = await User.find({ role: "parking_owner" }).select(
+      "-password"
+    );
+    res.status(200).json(owners);
+  } catch (error) {
+    next(error);
+  }
+};
 const getUserProfile = async (req, res, next) => {
   try {
     // req.user is populated by protect middleware
     const user = await User.findById(req.user._id).select(
-      '-password -refreshToken'
+      "-password -refreshToken"
     );
     if (user) {
       res.status(200).json(user);
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
     next(error);
@@ -50,7 +56,7 @@ const updateUserProfile = async (req, res, next) => {
         avatar: updatedUser.avatar,
       });
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
     next(error);
@@ -62,9 +68,7 @@ const updateUserProfile = async (req, res, next) => {
 // @access  Private (Admin)
 const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find({ isDeleted: false }).select(
-      '-password -refreshToken'
-    );
+    const users = await User.find({}).select("-password");
     res.status(200).json(users);
   } catch (error) {
     next(error);
@@ -78,12 +82,33 @@ const softDeleteUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
     user.isDeleted = true;
     user.deletedAt = new Date();
     await user.save();
-    res.status(200).json({ message: 'User soft deleted successfully' });
+    res.status(200).json({ message: "User soft deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update any user (Admin only)
+// @route   PUT /api/admin/users/:id
+// @access  Private (Admin)
+const updateUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    const { status } = req.body;
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.verificationStatus = status;
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+    });
   } catch (error) {
     next(error);
   }
@@ -93,5 +118,7 @@ module.exports = {
   getUserProfile,
   updateUserProfile,
   getAllUsers,
+  updateUser,
   softDeleteUser,
+  getAllOwners,
 };

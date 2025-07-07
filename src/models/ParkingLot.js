@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const ParkingLotSchema = new mongoose.Schema({
   name: {
@@ -30,7 +30,7 @@ const ParkingLotSchema = new mongoose.Schema({
     type: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Pricing',
+        ref: "Pricing",
         required: true,
       },
     ],
@@ -38,7 +38,7 @@ const ParkingLotSchema = new mongoose.Schema({
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   images: [
@@ -49,13 +49,18 @@ const ParkingLotSchema = new mongoose.Schema({
   ],
   parkingType: {
     type: String,
-    enum: ['official', 'unofficial', 'temporary'],
-    default: 'official',
+    enum: ["official", "unofficial", "temporary"],
+    default: "official",
   },
   verificationStatus: {
     type: String,
-    enum: ['pending', 'verified', 'rejected'],
-    default: 'pending',
+    enum: ["pending", "verified", "rejected"],
+    default: "pending",
+  },
+  status: {
+    type: String,
+    enum: ["active", "inactive"],
+    default: "inactive",
   },
   createdAt: {
     type: Date,
@@ -70,17 +75,15 @@ const ParkingLotSchema = new mongoose.Schema({
   },
 });
 
-ParkingLotSchema.index({ coordinates: '2dsphere' });
+ParkingLotSchema.index({ coordinates: "2dsphere" });
 ParkingLotSchema.index({ owner: 1 });
 
 // Hook để tự động gán availableSlots = capacity khi tạo mới ParkingLot
-ParkingLotSchema.pre('save', function (next) {
+ParkingLotSchema.pre("save", function (next) {
   if (this.isNew) {
     this.availableSlots = this.capacity;
   }
   next();
 });
 
-
-
-module.exports = mongoose.model('ParkingLot', ParkingLotSchema, 'parkinglots');
+module.exports = mongoose.model("ParkingLot", ParkingLotSchema, "parkinglots");

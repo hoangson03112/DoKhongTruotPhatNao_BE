@@ -12,14 +12,9 @@ const addReview = async (req, res, next) => {
     // Check if user has completed a booking for this parking lot
     // This is a common business rule to ensure reviews are from actual users.
     const hasBooked = await Booking.findOne({
-      userId: req.user._id,
-      parkingSpotId: {
-        $in: await ParkingSpot.find({ parkingLotId: parkingLotId }).select(
-          '_id'
-        ),
-      },
+      user: req.user._id,
+      parkingLot: parkingLotId,
       status: 'completed',
-      isDeleted: false,
     });
 
     if (!hasBooked) {

@@ -17,7 +17,7 @@ const createBooking = async (req, res, next) => {
     // Các validation cơ bản trước khi tạo Booking
     if (!parkingLotId || !startTime || !timeCheckOut || !licensePlate) {
       throw new Error(
-        'Missing required booking information: parkingLotId, startTime, timeCheckOut, licensePlate.'
+        "Missing required booking information: parkingLotId, startTime, timeCheckOut, licensePlate."
       );
     }
 
@@ -29,12 +29,12 @@ const createBooking = async (req, res, next) => {
     if (!parkingLot) {
       return res
         .status(404)
-        .json({ success: false, message: 'Parking lot not found.' });
+        .json({ success: false, message: "Parking lot not found." });
     }
-    if (parkingLot.verificationStatus !== 'verified') {
+    if (parkingLot.verificationStatus !== "verified") {
       return res.status(400).json({
         success: false,
-        message: 'Cannot book unverified parking lot.',
+        message: "Cannot book unverified parking lot.",
       });
     }
 
@@ -46,7 +46,7 @@ const createBooking = async (req, res, next) => {
       startTime: parsedStartTime,
       timeCheckOut: parsedtimeCheckOut,
       licensePlate,
-      status: 'pending',
+      status: "pending",
       // cancellationPolicy: có thể thêm từ req.body nếu có
     });
 
@@ -56,10 +56,10 @@ const createBooking = async (req, res, next) => {
       success: true,
       data: newBooking, // newBooking giờ đây đã có totalPrice được hook gán
       message:
-        'Booking created successfully. Please note your booking code for check-in.',
+        "Booking created successfully. Please note your booking code for check-in.",
     });
   } catch (error) {
-    console.error('Error creating booking:', error.message);
+    console.error("Error creating booking:", error.message);
     // Kiểm tra lỗi từ hook (ví dụ: "No available slots", "Pricing not found", "startTime cannot be more than 24 hours")
     res.status(400).json({ success: false, message: error.message });
   }
@@ -73,9 +73,9 @@ const getUserBookings = async (req, res, next) => {
     const userId = req.user._id;
     const bookings = await Booking.find({
       user: userId,
-      status: { $ne: 'cancelled' },
+      status: { $ne: "cancelled" },
     })
-      .populate('parkingLot', 'name address coordinates images')
+      .populate("parkingLot", "name address coordinates images")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -95,32 +95,32 @@ const getBookingDetails = async (req, res, next) => {
   try {
     const bookingId = req.params.id;
     const booking = await Booking.findById(bookingId)
-      .populate('user', 'username email name phone')
-      .populate('parkingLot', 'name address coordinates images owner');
+      .populate("user", "username email name phone")
+      .populate("parkingLot", "name address coordinates images owner");
 
     if (!booking) {
       return res
         .status(404)
-        .json({ success: false, message: 'Booking not found.' });
+        .json({ success: false, message: "Booking not found." });
     }
 
     const userRole = req.user.role;
     if (
-      userRole === 'user' &&
+      userRole === "user" &&
       booking.user._id.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to view this booking.',
+        message: "Not authorized to view this booking.",
       });
     }
     if (
-      userRole === 'parking_owner' &&
+      userRole === "parking_owner" &&
       booking.parkingLot.owner.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to view this booking.',
+        message: "Not authorized to view this booking.",
       });
     }
 
@@ -145,22 +145,22 @@ const cancelBooking = async (req, res, next) => {
     if (!booking) {
       return res
         .status(404)
-        .json({ success: false, message: 'Booking not found.' });
+        .json({ success: false, message: "Booking not found." });
     }
 
     const userRole = req.user.role;
     // Kiểm tra quyền hủy
-    if (userRole === 'user') {
+    if (userRole === "user") {
       if (booking.user.toString() !== req.user._id.toString()) {
         return res.status(403).json({
           success: false,
-          message: 'Not authorized to cancel this booking.',
+          message: "Not authorized to cancel this booking.",
         });
       }
-      if (booking.status !== 'pending' && booking.status !== 'confirmed') {
+      if (booking.status !== "pending" && booking.status !== "confirmed") {
         return res.status(400).json({
           success: false,
-          message: 'Cannot cancel a booking that is not pending or confirmed.',
+          message: "Cannot cancel a booking that is not pending or confirmed.",
         });
       }
       if (
@@ -170,59 +170,216 @@ const cancelBooking = async (req, res, next) => {
       ) {
         return res.status(400).json({
           success: false,
-          message: 'Cancellation time has passed according to policy.',
+          message: "Cancellation time has passed according to policy.",
         });
       }
-    } else if (userRole === 'parking_owner' || userRole === 'staff') {
+    } else if (userRole === "parking_owner" || userRole === "staff") {
       const parkingLot = await ParkingLot.findById(booking.parkingLot);
       if (!parkingLot) {
         return res.status(404).json({
           success: false,
-          message: 'Associated parking lot not found.',
+          message: "Associated parking lot not found.",
         });
       }
 
       if (
-        userRole === 'parking_owner' &&
+        userRole === "parking_owner" &&
         parkingLot.owner.toString() !== req.user._id.toString()
       ) {
         return res.status(403).json({
           success: false,
-          message: 'Not authorized to cancel bookings for this parking lot.',
+          message: "Not authorized to cancel bookings for this parking lot.",
         });
       }
-      if (userRole === 'staff') {
+      if (userRole === "staff") {
         return res.status(403).json({
           success: false,
           message:
-            'Staff role not configured for specific parking lot access. Not authorized to cancel.',
+            "Staff role not configured for specific parking lot access. Not authorized to cancel.",
         });
       }
-      if (booking.status === 'completed') {
+      if (booking.status === "completed") {
         return res.status(400).json({
           success: false,
-          message: 'Cannot cancel a completed booking.',
+          message: "Cannot cancel a completed booking.",
         });
       }
     } else {
       return res.status(403).json({
         success: false,
-        message: 'Unauthorized role to cancel booking.',
+        message: "Unauthorized role to cancel booking.",
       });
     }
 
     // Cập nhật trạng thái booking thành 'cancelled'
-    booking.status = 'cancelled';
+    booking.status = "cancelled";
     await booking.save(); // Hook post('save') sẽ chạy ở đây để tăng availableSlots
 
     res.status(200).json({
       success: true,
-      message: 'Booking cancelled successfully.',
+      message: "Booking cancelled successfully.",
       data: booking,
     });
   } catch (error) {
-    console.error('Error cancelling booking:', error.message);
+    console.error("Error cancelling booking:", error.message);
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get bookings for the authenticated user (alias getMyBookings)
+// @route   GET /api/bookings/my
+// @access  Private (User)
+const getMyBookings = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const bookings = await Booking.find({
+      user: userId,
+      status: { $ne: "cancelled" },
+    })
+      .populate("parkingLot", "name address coordinates images")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: bookings.length,
+      data: bookings,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Check-in vehicle - Update booking status to 'active'
+// @route   PATCH /api/bookings/:id/checkin
+// @access  Private (Admin/Parking_Owner/Staff)
+const checkInVehicle = async (req, res, next) => {
+  try {
+    const bookingId = req.params.id;
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found." });
+    }
+
+    if (booking.status !== "confirmed") {
+      return res.status(400).json({
+        success: false,
+        message: "Only confirmed bookings can be checked in.",
+      });
+    }
+
+    // Update booking status to active
+    booking.status = "active";
+    booking.actualStartTime = new Date();
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Vehicle checked in successfully.",
+      data: booking,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Check-out vehicle - Update booking status to 'completed'
+// @route   PATCH /api/bookings/:id/checkout
+// @access  Private (Admin/Parking_Owner/Staff)
+const checkOutVehicle = async (req, res, next) => {
+  try {
+    const bookingId = req.params.id;
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found." });
+    }
+
+    if (booking.status !== "active") {
+      return res.status(400).json({
+        success: false,
+        message: "Only active bookings can be checked out.",
+      });
+    }
+
+    // Update booking status to completed
+    booking.status = "completed";
+    booking.actualEndTime = new Date();
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Vehicle checked out successfully.",
+      data: booking,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getOwnerReservations = async (req, res, next) => {
+  try {
+    // Get all bookings for these parking lots
+    const reservations = await Booking.find({
+      parkingLot: req.params.id,
+    })
+      .populate("user")
+      .populate("parkingLot")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: reservations.length,
+      data: reservations,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update a reservation (for parking lot owners)
+// @route   PUT /api/owner/reservations/:id
+// @access  Private (Parking_Owner/Admin)
+const updateReservation = async (req, res, next) => {
+  try {
+    const bookingId = req.params.id;
+    const booking = await Booking.findById(bookingId).populate("parkingLot");
+
+    if (!booking) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Reservation not found." });
+    }
+
+    // Check if the current user owns the parking lot for this booking
+    if (
+      booking.parkingLot.owner.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this reservation.",
+      });
+    }
+
+    const { status } = req.body;
+
+    // Update allowed fields
+    if (status) booking.status = status;
+
+    const updatedBooking = await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Reservation updated successfully.",
+      data: updatedBooking,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -231,4 +388,9 @@ module.exports = {
   getUserBookings,
   getBookingDetails,
   cancelBooking,
+  getMyBookings,
+  checkInVehicle,
+  checkOutVehicle,
+  getOwnerReservations,
+  updateReservation,
 };

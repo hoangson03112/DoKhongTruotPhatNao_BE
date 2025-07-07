@@ -251,10 +251,12 @@ const logout = async (req, res, next) => {
   });
 };
 
+
 module.exports = {
   register,
   registerParkingOwner,
   login,
+
   getMe,
   logout,
 };

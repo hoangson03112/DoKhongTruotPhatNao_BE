@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 // Model User
 const userSchema = new mongoose.Schema(
@@ -12,22 +12,20 @@ const userSchema = new mongoose.Schema(
     phone: { type: String },
     role: {
       type: String,
-      enum: ['user', 'admin', 'parking_owner', 'staff'],
-      default: 'user',
+      enum: ["user", "admin", "parking_owner", "staff"],
+      default: "user",
     },
     avatar: { type: String },
-    // TRƯỜNG MỚI: Để lưu trữ ảnh xác minh cho chủ bãi đỗ
     ownerVerificationImages: {
-      type: [String], // Mảng các URL ảnh
+      type: [String],
       default: [],
     },
-    // TRƯỜNG MỚI: Trạng thái xác minh của người dùng (đặc biệt cho parking_owner)
     verificationStatus: {
       type: String,
-      enum: ['pending', 'verified', 'rejected', 'not_applicable'], // "not_applicable" cho user/admin/staff không cần xác minh
-      default: 'not_applicable',
+      enum: ["pending", "verified", "rejected"],
+      default: "pending",
     },
-    refreshToken: { type: String },
+
     lastLogin: { type: Date, default: Date.now },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
@@ -36,8 +34,8 @@ const userSchema = new mongoose.Schema(
 );
 
 // Mã hóa mật khẩu trước khi lưu
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
     next();
   }
   const salt = await bcrypt.genSalt(10);
@@ -57,5 +55,5 @@ userSchema.methods.getSignedJwtToken = function () {
   });
 };
 
-const User = mongoose.model('User', userSchema, 'user');
+const User = mongoose.model("User", userSchema, "user");
 module.exports = User;
