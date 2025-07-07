@@ -1227,7 +1227,9 @@ if (process.env.NODE_ENV === 'production') {
     url: 'https://do-khong-truot-phat-nao.onrender.com/api', // URL API production của bạn
     description: 'Production Server',
   });
-  console.log('Server URL: https://do-khong-truot-phat-nao.onrender.com/api');
+  console.log(
+    'Server URL api: https://do-khong-truot-phat-nao.onrender.com/api'
+  );
 } else {
   const PORT = process.env.PORT;
   // Mặc định là development hoặc local
@@ -1235,7 +1237,7 @@ if (process.env.NODE_ENV === 'production') {
     url: `http://localhost:${PORT}/api`, // URL API local của bạn
     description: 'Local Development Server',
   });
-  console.log(`Server URL: http://localhost:${PORT}/api`);
+  console.log(`Server URL api: http://localhost:${PORT}/api`);
 }
 
 module.exports = swaggerConfig;

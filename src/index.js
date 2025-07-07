@@ -73,6 +73,14 @@ app.use('/test', (req, res, next) => {
   });
 });
 
+app.use('/', (req, res, next) => {
+  res.status(200).json({
+    status: 'success',
+    message:
+      '🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧',
+  });
+});
+
 // Error handling middleware
 app.use(errorHandler);
 
