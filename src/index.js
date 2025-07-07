@@ -48,6 +48,7 @@ console.log(`Xem chi tiết tài liệu api tại ${apiBaseUrl}/api-docs`); // T
 // Import Routes
 const userRoutes = require('./routes/user.routes');
 const parkingLotRoutes = require('./routes/parkingLot.routes');
+const ownerParkingLotRoutes = require('./routes/owner.parkinglot.routes');
 const bookingRoutes = require('./routes/booking.routes');
 // const reviewRoutes = require('./routes/review.routes');
 const notificationRoutes = require('./routes/notification.routes');
@@ -57,6 +58,7 @@ const authRoutes = require('./routes/auth.routes');
 // Use Routes
 app.use('/api/users', userRoutes);
 app.use('/api/parking-lots', parkingLotRoutes);
+app.use('/api/owner/parking-lots', ownerParkingLotRoutes);
 app.use('/api/bookings', bookingRoutes);
 // app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);

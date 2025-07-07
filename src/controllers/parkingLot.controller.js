@@ -1,199 +1,138 @@
 const ParkingLot = require('../models/ParkingLot');
 const User = require('../models/User');
+const Pricing = require('../models/Pricing');
+const mongoose = require('mongoose');
 
-// @desc    Create a new parking lot
-// @route   POST /api/parkinglots
-// @access  Private (Admin/Parking_Owner)
-const createParkingLot = async (req, res, next) => {
+// @desc    Danh sách bãi đỗ mình quản lý (Cho Parking Owner / Staff)
+// @route   GET /api/owner/parking-lots
+// @access  Private (Parking Owner, Staff)
+const getOwnerParkingLots = async (req, res, next) => {
   try {
-    const {
-      name,
-      description,
-      address,
-      location,
-      hourlyRate,
-      imageUrls,
-      contactPhone,
-      contactEmail,
-      openingHours,
-    } = req.body;
+    const ownerId = req.user._id;
+    const userRole = req.user.role;
 
-    const newParkingLot = new ParkingLot({
-      name,
-      description,
-      address,
-      location,
-      hourlyRate,
-      imageUrls,
-      contactPhone,
-      contactEmail,
-      ownerId: req.user._id, // Assign owner as the authenticated user
-      openingHours: openingHours || [],
-      totalSpots: 0, // Initialize to 0, spots will be added later
-      availableSpots: 0,
-    });
-
-    const createdLot = await newParkingLot.save();
-    res.status(201).json(createdLot);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Get all parking lots
-// @route   GET /api/parkinglots
-// @access  Public
-const getAllParkingLots = async (req, res, next) => {
-  try {
-    // You might add filtering/pagination here
-    const parkingLots = await ParkingLot.find({ isDeleted: false }).populate(
-      'ownerId',
-      'username email'
-    );
-    res.status(200).json(parkingLots);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Get a single parking lot by ID
-// @route   GET /api/parkinglots/:id
-// @access  Public
-const getParkingLotById = async (req, res, next) => {
-  try {
-    const parkingLot = await ParkingLot.findOne({
-      _id: req.params.id,
-      isDeleted: false,
-    }).populate('ownerId', 'username email');
-    if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking Lot not found' });
-    }
-    // Update available spots on view (if not using queue/cache)
-    // parkingLot.availableSpots = await calculateAvailableSpots(parkingLot._id);
-    // await parkingLot.save(); // Save the updated availableSpots if you want it persistent
-    res.status(200).json(parkingLot);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Update a parking lot
-// @route   PATCH /api/parkinglots/:id
-// @access  Private (Admin/Parking_Owner)
-const updateParkingLot = async (req, res, next) => {
-  try {
-    const parkingLot = await ParkingLot.findOne({
-      _id: req.params.id,
-      isDeleted: false,
-    });
-    if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking Lot not found' });
-    }
-    // Authorization check: Only owner or admin can update
-    if (
-      parkingLot.ownerId.toString() !== req.user._id.toString() &&
-      req.user.role !== 'admin'
-    ) {
-      return res
-        .status(403)
-        .json({ message: 'Not authorized to update this parking lot' });
+    let query = {};
+    if (userRole === 'parking_owner') {
+      query.owner = ownerId;
+    } else if (userRole === 'staff') {
+      return res.status(403).json({
+        success: false,
+        message:
+          'Staff role not configured for specific parking lot access. Cannot view owner parking lots.',
+      });
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to access owner parking lots.',
+      });
     }
 
-    const {
-      name,
-      description,
-      address,
-      location,
-      totalSpots,
-      availableSpots,
-      hourlyRate,
-      imageUrls,
-      contactPhone,
-      contactEmail,
-      openingHours,
-    } = req.body;
-
-    parkingLot.name = name || parkingLot.name;
-    parkingLot.description = description || parkingLot.description;
-    parkingLot.address = address || parkingLot.address;
-    if (location) parkingLot.location = location; // Update location if provided
-    parkingLot.totalSpots = totalSpots || parkingLot.totalSpots;
-    parkingLot.availableSpots = availableSpots || parkingLot.availableSpots;
-    parkingLot.hourlyRate = hourlyRate || parkingLot.hourlyRate;
-    parkingLot.imageUrls = imageUrls || parkingLot.imageUrls;
-    parkingLot.contactPhone = contactPhone || parkingLot.contactPhone;
-    parkingLot.contactEmail = contactEmail || parkingLot.contactEmail;
-    parkingLot.openingHours = openingHours || parkingLot.openingHours;
-
-    const updatedLot = await parkingLot.save();
-    res.status(200).json(updatedLot);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Soft delete a parking lot
-// @route   DELETE /api/parkinglots/:id
-// @access  Private (Admin/Parking_Owner)
-const softDeleteParkingLot = async (req, res, next) => {
-  try {
-    const parkingLot = await ParkingLot.findOne({
-      _id: req.params.id,
-      isDeleted: false,
-    });
-    if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking Lot not found' });
-    }
-    // Authorization check: Only owner or admin can delete
-    if (
-      parkingLot.ownerId.toString() !== req.user._id.toString() &&
-      req.user.role !== 'admin'
-    ) {
-      return res
-        .status(403)
-        .json({ message: 'Not authorized to delete this parking lot' });
-    }
-
-    parkingLot.isDeleted = true;
-    parkingLot.deletedAt = new Date();
-    await parkingLot.save();
-
-    // // Also soft delete all associated parking spots
-    // await ParkingSpot.updateMany(
-    //   { parkingLotId: parkingLot._id },
-    //   {
-    //     $set: { isDeleted: true, deletedAt: new Date(), status: 'maintenance' },
-    //   } // Mark as maintenance
-    // );
+    const parkingLots = await ParkingLot.find(query)
+      .populate('owner', 'username email')
+      .populate('pricing');
 
     res.status(200).json({
-      message: 'Parking Lot and associated spots soft deleted successfully',
+      success: true,
+      count: parkingLots.length,
+      data: parkingLots,
     });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Get parking lots owned by the authenticated owner
-// @route   GET /api/parkinglots/my
-// @access  Private (Parking_Owner)
-const getMyParkingLots = async (req, res, next) => {
+// @desc    Thêm bãi đỗ mới
+// @route   POST /api/owner/parking-lots
+// @access  Private (Parking Owner)
+const createParkingLot = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const parkingLots = await ParkingLot.find({
-      ownerId: req.user._id,
-      isDeleted: false,
+    // Lưu ý: availableSlots không cần gửi trong request body nữa,
+    // nó sẽ được tự động tính từ capacity bởi hook của ParkingLot
+    const {
+      name,
+      address,
+      coordinates,
+      capacity,
+      pricing,
+      images,
+      parkingType,
+    } = req.body;
+    const ownerId = req.user._id;
+
+    if (req.user.role !== 'parking_owner') {
+      throw new Error('Only parking owners can create new parking lots.');
+    }
+
+    if (
+      !name ||
+      !address ||
+      !coordinates ||
+      !capacity ||
+      !pricing ||
+      !Array.isArray(pricing) ||
+      pricing.length === 0
+    ) {
+      throw new Error(
+        'Missing required parking lot information: name, address, coordinates, capacity, and pricing are required.'
+      );
+    }
+
+    // Xử lý phần pricing (tạo các Pricing documents mới)
+    let pricingIds = [];
+    for (const p of pricing) {
+      // Với Pricing model mới của bạn, chỉ chấp nhận type 'hourly'
+      if (p.type !== 'hourly' || typeof p.price !== 'number' || p.price < 0) {
+        throw new Error(
+          'Invalid pricing item. Only "hourly" type with a valid price is accepted.'
+        );
+      }
+
+      const newPricingDoc = await Pricing.create(
+        [
+          {
+            type: p.type,
+            price: p.price,
+          },
+        ],
+        { session }
+      );
+      pricingIds.push(newPricingDoc[0]._id);
+    }
+
+    // Tạo bãi đỗ xe mới
+    const newParkingLot = new ParkingLot({
+      name,
+      address,
+      coordinates,
+      capacity,
+      // availableSlots sẽ được tự động set bằng capacity bởi hook pre('save') của ParkingLot
+      pricing: pricingIds,
+      owner: ownerId,
+      images: images || [],
+      parkingType: parkingType || 'official',
+      verificationStatus: 'pending',
     });
-    res.status(200).json(parkingLots);
+
+    await newParkingLot.save({ session });
+
+    await session.commitTransaction();
+    res.status(201).json({
+      success: true,
+      data: newParkingLot,
+      message: 'Parking lot created successfully and awaiting verification.',
+    });
   } catch (error) {
-    next(error);
+    await session.abortTransaction();
+    console.error('Error creating parking lot:', error.message);
+    res.status(400).json({ success: false, message: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
 module.exports = {
+  getOwnerParkingLots,
   createParkingLot,
-  getAllParkingLots,
-  getParkingLotById,
-  updateParkingLot,
-  softDeleteParkingLot,
-  getMyParkingLots,
 };
