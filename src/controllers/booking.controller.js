@@ -234,7 +234,7 @@ const getMyBookings = async (req, res, next) => {
     const userId = req.user._id;
     const bookings = await Booking.find({
       user: userId,
-      status: { $ne: 'cancelled' },
+      // status: { $ne: 'cancelled' }, //lấy cả các booking đã bị huỷ
     })
       .populate('parkingLot', 'name address coordinates images')
       .sort({ createdAt: -1 });

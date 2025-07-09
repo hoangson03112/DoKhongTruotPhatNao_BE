@@ -44,6 +44,12 @@ const register = async (req, res, next) => {
   try {
     const { username, email, password, name, phone, role } = req.body;
 
+    //Check phone number is exist
+    const existingPhone = await User.findOne({ phone, isDeleted: false });
+    if (existingPhone) {
+      return res.status(400).json({ message: 'Phone number already exists.' });
+    }
+
     // Kiểm tra xem username hoặc email đã tồn tại chưa
     const existingUser = await User.findOne({
       $or: [{ username }, { email }],
@@ -172,7 +178,9 @@ const login = async (req, res, next) => {
       '+password'
     ); // Select password explicitly
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res
+        .status(401)
+        .json({ message: 'Invalid information, user not found' });
     }
 
     // Kiểm tra trạng thái xác minh cho parking_owner
@@ -250,7 +258,6 @@ module.exports = {
   register,
   registerParkingOwner,
   login,
-
   getMe,
   logout,
 };

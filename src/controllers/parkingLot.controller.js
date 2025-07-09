@@ -85,13 +85,21 @@ const createParkingLot = async (req, res, next) => {
 const getAllParkingLots = async (req, res, next) => {
   try {
     // You might add filtering/pagination here
-    const parkingLots = await ParkingLot.find({}).populate('owner');
+    //Lấy ra các bãi đỗ xe đã được xác minh và còn tồn tại, và đã được đưa vào sử dụng (active)
+    const parkingLots = await ParkingLot.find({
+      isDeleted: false,
+      verificationStatus: 'verified',
+      status: 'active',
+    })
+      .populate('pricing')
+      .populate('owner');
     res.status(200).json(parkingLots);
   } catch (error) {
     next(error);
   }
 };
 
+//For admin, owners
 const getParkingLotById = async (req, res, next) => {
   try {
     const parkingLot = await ParkingLot.findById(req.params.id);
@@ -100,6 +108,26 @@ const getParkingLotById = async (req, res, next) => {
     }
 
     res.status(200).json(parkingLot);
+  } catch (error) {
+    next(error);
+  }
+};
+
+//For users
+const getParkingLotDetails = async (req, res, next) => {
+  try {
+    const parkingLot = await ParkingLot.find({
+      _id: req.params.id,
+      isDeleted: false,
+      verificationStatus: 'verified',
+      status: 'active',
+    })
+      .populate('pricing')
+      .populate('owner');
+    if (!parkingLot) {
+      return res.status(404).json({ message: 'Parking Lot not found' });
+    }
+    res.status(200).json(parkingLot[0]);
   } catch (error) {
     next(error);
   }
@@ -191,7 +219,7 @@ const getMyParkingLots = async (req, res, next) => {
     const parkingLots = await ParkingLot.find({
       owner: req.user._id,
       isDeleted: false,
-    });
+    }).populate('pricing');
     res.status(200).json(parkingLots);
   } catch (error) {
     next(error);
@@ -202,6 +230,7 @@ module.exports = {
   createParkingLot,
   getAllParkingLots,
   getParkingLotById,
+  getParkingLotDetails,
   updateParkingLot,
   softDeleteParkingLot,
   getMyParkingLots,
