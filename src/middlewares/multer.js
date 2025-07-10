@@ -14,7 +14,16 @@ const upload = multer({
   storage,
   limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4'];
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'video/mp4',
+      'image/jpg',
+      'image/webp',
+      'image/gif',
+      'image/heic',
+      'image/heif',
+    ];
     if (!allowedTypes.includes(file.mimetype)) {
       return cb(new Error('Chỉ hỗ trợ ảnh JPEG, PNG hoặc video MP4.'));
     }

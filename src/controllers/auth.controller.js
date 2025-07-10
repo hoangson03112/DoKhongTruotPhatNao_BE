@@ -390,6 +390,12 @@ const registerParkingOwner = [
           .json({ message: 'Username or Email already exists.' });
       }
 
+      console.log('req.uploadedUrls:', req.uploadedUrls);
+      console.log(
+        'req.uploadedUrls?.ownerVerificationImages:',
+        req.uploadedUrls?.ownerVerificationImages
+      );
+
       const ownerVerificationImages =
         req.uploadedUrls.ownerVerificationImages || [];
       if (ownerVerificationImages.length === 0) {

@@ -1,0 +1,313 @@
+package com.tencongty.projectprm.activities.common;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.gson.JsonObject;
+import com.tencongty.projectprm.R;
+import com.tencongty.projectprm.network.ApiClient;
+import com.tencongty.projectprm.network.ApiService;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class ParkingOwner_RegisterActivity extends AppCompatActivity {
+
+    private EditText etUsername, etEmail, etPassword, etFullName, etPhone;
+    private TextView tvSelectedImages, tvBackToLogin;
+    private MaterialButton btnRegister;
+    private Button btnSelectImages;
+    private List<Uri> selectedImageUris = new ArrayList<>();
+
+    // Launcher cho việc chọn ảnh từ thư viện
+    private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    selectedImageUris.clear(); // Xóa các ảnh đã chọn trước đó
+                    Intent data = result.getData();
+                    if (data.getClipData() != null) {
+                        // Xử lý khi chọn nhiều ảnh
+                        int count = data.getClipData().getItemCount();
+                        for (int i = 0; i < count; i++) {
+                            Uri imageUri = data.getClipData().getItemAt(i).getUri();
+                            selectedImageUris.add(imageUri);
+                        }
+                    } else if (data.getData() != null) {
+                        // Xử lý khi chọn một ảnh
+                        Uri imageUri = data.getData();
+                        selectedImageUris.add(imageUri);
+                    }
+                    tvSelectedImages.setText("Đã chọn " + selectedImageUris.size() + " ảnh");
+                }
+            }
+    );
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.packing_owner_activity_register);
+
+        // Khởi tạo các View
+        etUsername = findViewById(R.id.etUsername);
+        etEmail = findViewById(R.id.etEmail);
+        etPassword = findViewById(R.id.etPassword);
+        etFullName = findViewById(R.id.etFullName);
+        etPhone = findViewById(R.id.etPhone);
+        btnRegister = findViewById(R.id.btnRegisterOwner);
+        btnSelectImages = findViewById(R.id.btnSelectImages);
+        tvSelectedImages = findViewById(R.id.tvSelectedImageCount);
+        tvBackToLogin = findViewById(R.id.tvLoginLink);
+
+        // Đặt lắng nghe sự kiện
+        btnSelectImages.setOnClickListener(v -> openImagePicker());
+        btnRegister.setOnClickListener(v -> handleRegisterOwner());
+        tvBackToLogin.setOnClickListener(v -> finish());
+    }
+
+    // Mở bộ chọn ảnh
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // Cho phép chọn nhiều ảnh
+        intent.addCategory(Intent.CATEGORY_OPENABLE); // Cần thiết để truy cập tài liệu qua Uri
+        // Đặt MIME types được phép chọn. Backend của bạn hỗ trợ JPEG, PNG, MP4.
+        // Tuy nhiên, ACTION_OPEN_DOCUMENT với multiple files có thể không hoạt động hoàn hảo với "image/*|video/*"
+        // Tốt nhất nên dùng EXTRA_MIME_TYPES cho khả năng tương thích cao hơn.
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/jpeg", "image/png", "video/mp4"});
+        imagePickerLauncher.launch(Intent.createChooser(intent, "Chọn ảnh/video xác minh"));
+    }
+
+    // Xử lý logic đăng ký chủ bãi đỗ xe
+    private void handleRegisterOwner() {
+        String username = etUsername.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+        String name = etFullName.getText().toString().trim();
+        String phone = etPhone.getText().toString().trim();
+
+        // Kiểm tra validation đầu vào
+        if (TextUtils.isEmpty(username) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)
+                || TextUtils.isEmpty(name) || TextUtils.isEmpty(phone) || selectedImageUris.isEmpty()) {
+            Toast.makeText(this, "Vui lòng điền đầy đủ thông tin và chọn ít nhất 1 ảnh xác minh", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 1. Chuẩn bị các trường dữ liệu text dưới dạng RequestBody
+        RequestBody reqUsername = RequestBody.create(MediaType.parse("text/plain"), username);
+        RequestBody reqEmail = RequestBody.create(MediaType.parse("text/plain"), email);
+        RequestBody reqPassword = RequestBody.create(MediaType.parse("text/plain"), password);
+        RequestBody reqName = RequestBody.create(MediaType.parse("text/plain"), name);
+        RequestBody reqPhone = RequestBody.create(MediaType.parse("text/plain"), phone);
+
+        // 2. Chuẩn bị danh sách các MultipartBody.Part cho ảnh/video
+        List<MultipartBody.Part> fileParts = new ArrayList<>();
+        // Lưu trữ các file tạm để xóa sau này
+        List<File> tempFilesToDelete = new ArrayList<>();
+
+        for (Uri uri : selectedImageUris) {
+            try {
+                File file = uriToFile(uri); // Chuyển Uri thành File tạm thời
+                if (file != null) {
+                    tempFilesToDelete.add(file); // Thêm file tạm vào danh sách để xóa sau
+
+                    // Lấy MIME type của Uri để gửi đúng loại file lên backend
+                    String mimeType = getContentResolver().getType(uri);
+                    if (mimeType == null) {
+                        mimeType = "application/octet-stream"; // Mặc định nếu không xác định được loại
+                    }
+
+                    // Tạo RequestBody từ file
+                    RequestBody requestFile = RequestBody.create(MediaType.parse(mimeType), file);
+
+                    // Tạo MultipartBody.Part. "ownerVerificationImages" phải khớp với tên trường Multer trên backend
+                    MultipartBody.Part body = MultipartBody.Part.createFormData("ownerVerificationImages", file.getName(), requestFile);
+                    fileParts.add(body);
+                } else {
+                    Toast.makeText(this, "Không thể tạo file từ một số ảnh/video đã chọn. Vui lòng thử lại.", Toast.LENGTH_SHORT).show();
+                    // Xóa các file tạm đã được tạo trước đó nếu có lỗi
+                    deleteTempFiles(tempFilesToDelete);
+                    return; // Dừng quá trình đăng ký nếu có lỗi xử lý file
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Lỗi khi xử lý ảnh/video: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                // Xóa các file tạm đã được tạo trước đó nếu có lỗi
+                deleteTempFiles(tempFilesToDelete);
+                return; // Dừng quá trình đăng ký nếu có lỗi
+            }
+        }
+
+        // Kiểm tra xem có đủ ảnh/video để gửi không
+        if (fileParts.isEmpty()) {
+            Toast.makeText(this, "Vui lòng chọn ít nhất 1 ảnh hoặc video xác minh hợp lệ.", Toast.LENGTH_SHORT).show();
+            // Xóa các file tạm đã được tạo nếu có
+            deleteTempFiles(tempFilesToDelete);
+            return;
+        }
+
+        // Gọi API Service
+        ApiService apiService = ApiClient.getClient(getApplicationContext()).create(ApiService.class);
+        apiService.registerParkingOwner(reqUsername, reqEmail, reqPassword, reqName, reqPhone, fileParts)
+                .enqueue(new Callback<JsonObject>() {
+                    @Override
+                    public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                        // Luôn xóa các file tạm sau khi nhận được phản hồi
+                        deleteTempFiles(tempFilesToDelete);
+
+                        if (response.isSuccessful() && response.body() != null) {
+                            JsonObject res = response.body();
+                            if (res.has("success") && res.get("success").getAsBoolean()) {
+                                Toast.makeText(ParkingOwner_RegisterActivity.this, res.get("message").getAsString(), Toast.LENGTH_LONG).show();
+                                finish(); // Đóng Activity sau khi đăng ký thành công
+                            } else {
+                                // Xử lý lỗi từ server (ví dụ: username/email đã tồn tại)
+                                String errorMessage = "Đăng ký thất bại.";
+                                if (res.has("message")) {
+                                    errorMessage = res.get("message").getAsString();
+                                }
+                                Toast.makeText(ParkingOwner_RegisterActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                            // Xử lý lỗi HTTP (ví dụ: 400 Bad Request, 500 Internal Server Error)
+                            String errorMsg = "Lỗi server: " + response.code();
+                            try {
+                                if (response.errorBody() != null) {
+                                    JsonObject errorJson = ApiClient.getGson().fromJson(response.errorBody().string(), JsonObject.class);
+                                    if (errorJson != null && errorJson.has("message")) {
+                                        errorMsg = "Lỗi: " + errorJson.get("message").getAsString();
+                                    }
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            Toast.makeText(ParkingOwner_RegisterActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<JsonObject> call, Throwable t) {
+                        // Luôn xóa các file tạm khi request thất bại (lỗi kết nối, timeout)
+                        deleteTempFiles(tempFilesToDelete);
+                        Toast.makeText(ParkingOwner_RegisterActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    /**
+     * Chuyển đổi một Content URI thành một File tạm thời.
+     * Dữ liệu từ InputStream của Uri sẽ được ghi vào một file trong thư mục cache của ứng dụng.
+     * @param uri Content URI của file ảnh/video
+     * @return File tạm thời đã được tạo, hoặc null nếu có lỗi
+     * @throws IOException nếu có lỗi đọc/ghi file
+     */
+    private File uriToFile(Uri uri) throws IOException {
+        InputStream inputStream = getContentResolver().openInputStream(uri);
+        if (inputStream == null) {
+            return null;
+        }
+
+        // Lấy tên file từ Uri hoặc tạo tên mặc định
+        String fileName = getFileName(uri);
+        if (fileName == null || fileName.isEmpty()) {
+            // Đảm bảo tên file duy nhất nếu không thể lấy từ Uri
+            fileName = "temp_upload_" + System.currentTimeMillis();
+            // Thêm đuôi file dựa trên MIME type nếu có thể
+            String mimeType = getContentResolver().getType(uri);
+            if (mimeType != null && mimeType.contains("/")) {
+                fileName += "." + mimeType.substring(mimeType.lastIndexOf('/') + 1);
+            }
+        }
+
+        File tempFile = new File(getCacheDir(), fileName); // Lưu vào thư mục cache của ứng dụng
+        FileOutputStream outputStream = new FileOutputStream(tempFile);
+
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
+        }
+
+        outputStream.close();
+        inputStream.close();
+        return tempFile;
+    }
+
+    /**
+     * Lấy tên file hiển thị từ Content URI.
+     * @param uri Content URI
+     * @return Tên file, hoặc null nếu không tìm thấy
+     */
+    private String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    // Lấy chỉ số cột DISPLAY_NAME
+                    int nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                    if (nameIndex != -1) {
+                        result = cursor.getString(nameIndex);
+                    }
+                }
+            }
+        }
+        // Fallback nếu không phải content URI hoặc không có DISPLAY_NAME
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Xóa danh sách các file tạm thời đã được tạo để upload.
+     * @param tempFiles List các File cần xóa
+     */
+    private void deleteTempFiles(List<File> tempFiles) {
+        for (File file : tempFiles) {
+            if (file != null && file.exists()) {
+                if (file.delete()) {
+                    // Log.d("ParkingOwner_Register", "Đã xóa file tạm: " + file.getName());
+                } else {
+                    // Log.w("ParkingOwner_Register", "Không thể xóa file tạm: " + file.getName());
+                }
+            }
+        }
+        tempFiles.clear(); // Xóa khỏi danh sách sau khi xóa vật lý
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Đảm bảo không còn file tạm nào bị sót nếu Activity bị destroy đột ngột
+        // Mặc dù chúng ta đã xóa trong onResponse/onFailure, đây là một biện pháp dự phòng.
+        // Tuy nhiên, việc truyền List<File> trong callback có thể phức tạp.
+        // Tốt nhất là logic xóa file tạm nên được handle trong lifecycle của request.
+        // Nếu bạn muốn chắc chắn hơn, có thể dùng Global variable hoặc ViewModel để lưu trữ tempFilesToDelete
+        // và gọi deleteTempFiles từ đó. Với trường hợp đơn giản này, cách hiện tại là đủ.
+    }
+}
