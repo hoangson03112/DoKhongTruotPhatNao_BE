@@ -7,14 +7,17 @@ const errorHandler = require('./middlewares/errorHandler');
 dotenv.config();
 require('./utils/cronJob');
 
+const path = require('path');
+const fs = require('fs');
+
 // Import Swagger
-const swaggerUi = require("swagger-ui-express");
+const swaggerUi = require('swagger-ui-express');
 // Load your swagger.json (which should reference /auth and /users, not /api/auth)
 const swaggerSpec = require('./swaggerConfig'); //Sử dụng cấu hình động thay vì file json như ban đầu
 
-const User = require("./models/User");
-const ParkingLot = require("./models/ParkingLot");
-const Booking = require("./models/Booking");
+const User = require('./models/User');
+const ParkingLot = require('./models/ParkingLot');
+const Booking = require('./models/Booking');
 // const Review = require('./models/Review');
 const PersonalNotification = require('./models/PersonalNotifications');
 const BroadcastNotification = require('./models/BroadcastNotification');
@@ -22,6 +25,12 @@ const UserBroadcastNotificationStatus = require('./models/UserBroadcastNotificat
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Tạo thư mục uploads nếu chưa tồn tại
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
 // Middleware để parse JSON
 app.use(express.json());
@@ -52,8 +61,8 @@ const ownerParkingLotRoutes = require('./routes/owner.parkinglot.routes');
 const ownerReservationsRoutes = require('./routes/owner.reservations.routes');
 const bookingRoutes = require('./routes/booking.routes');
 const reviewRoutes = require('./routes/review.routes');
-const notificationRoutes = require("./routes/notification.routes");
-const authRoutes = require("./routes/auth.routes");
+const notificationRoutes = require('./routes/notification.routes');
+const authRoutes = require('./routes/auth.routes');
 const adminRoutes = require('./routes/admin.routes');
 
 // Use Routes
@@ -63,8 +72,8 @@ app.use('/api/owner/parking-lots', ownerParkingLotRoutes);
 app.use('/api/owner', ownerReservationsRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/reviews', reviewRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/auth", authRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 
 //-----------------Test deploying---------------------
@@ -95,5 +104,5 @@ connectDB()
     });
   })
   .catch((err) => {
-    console.error("Không thể khởi động server do lỗi kết nối DB:", err.message);
+    console.error('Không thể khởi động server do lỗi kết nối DB:', err.message);
   });
