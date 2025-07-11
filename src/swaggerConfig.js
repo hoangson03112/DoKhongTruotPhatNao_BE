@@ -590,7 +590,14 @@ const swaggerConfig = {
       },
       ParkingLotInput: {
         type: 'object',
-        required: ['name', 'address', 'coordinates', 'capacity'],
+        required: [
+          'name',
+          'address',
+          'coordinates',
+          'capacity',
+          'images',
+          'pricing',
+        ],
         properties: {
           name: {
             type: 'string',
@@ -634,9 +641,8 @@ const swaggerConfig = {
               format: 'ObjectId',
               example: '60d0fe4f3b7d1e0015f8c8b2',
             },
-            description:
-              'Mảng ID của các gói giá. Nếu không cung cấp, hệ thống sẽ tạo pricing mặc định.',
-            nullable: true,
+            description: 'Mảng ID của các gói giá (bắt buộc).',
+            minItems: 1,
           },
           images: {
             type: 'array',
@@ -645,8 +651,9 @@ const swaggerConfig = {
               'https://example.com/parking1.jpg',
               'https://example.com/parking2.jpg',
             ],
-            description: 'Mảng URL hình ảnh của bãi đỗ xe',
-            nullable: true,
+            description:
+              'Mảng URL hình ảnh của bãi đỗ xe (bắt buộc, ít nhất 1 ảnh)',
+            minItems: 1,
           },
         },
       },
@@ -1165,7 +1172,7 @@ const swaggerConfig = {
               schema: { $ref: '#/components/schemas/ParkingLotInput' },
               examples: {
                 basicParkingLot: {
-                  summary: 'Bãi đỗ xe cơ bản (chỉ required fields)',
+                  summary: 'Bãi đỗ xe cơ bản (tất cả required fields)',
                   value: {
                     name: 'Bãi Đỗ Xe Trung Tâm',
                     address: '123 Đường Lê Lợi, Quận 1, TP.HCM',
@@ -1174,6 +1181,8 @@ const swaggerConfig = {
                       lng: 106.6297,
                     },
                     capacity: 100,
+                    pricing: ['60d0fe4f3b7d1e0015f8c8b2'],
+                    images: ['https://example.com/parking-entrance.jpg'],
                   },
                 },
                 fullParkingLot: {
@@ -1186,10 +1195,14 @@ const swaggerConfig = {
                       lng: 106.7009,
                     },
                     capacity: 200,
-                    pricing: ['60d0fe4f3b7d1e0015f8c8b2'],
+                    pricing: [
+                      '60d0fe4f3b7d1e0015f8c8b2',
+                      '60d0fe4f3b7d1e0015f8c8b3',
+                    ],
                     images: [
                       'https://example.com/parking-entrance.jpg',
                       'https://example.com/parking-interior.jpg',
+                      'https://example.com/parking-overview.jpg',
                     ],
                   },
                 },
@@ -1228,7 +1241,15 @@ const swaggerConfig = {
                     value: {
                       success: false,
                       message:
-                        'Missing required fields: name, address, coordinates, capacity',
+                        'Missing required fields: name, address, coordinates, capacity, images, pricing',
+                    },
+                  },
+                  missingImages: {
+                    summary: 'Thiếu hoặc ảnh rỗng',
+                    value: {
+                      success: false,
+                      message:
+                        'At least one image is required for the parking lot',
                     },
                   },
                   invalidCoordinates: {
@@ -1364,7 +1385,7 @@ const swaggerConfig = {
               schema: { $ref: '#/components/schemas/ParkingLotInput' },
               examples: {
                 basicParkingLot: {
-                  summary: 'Bãi đỗ xe cơ bản (chỉ required fields)',
+                  summary: 'Bãi đỗ xe cơ bản (tất cả required fields)',
                   value: {
                     name: 'Bãi Đỗ Xe Trung Tâm',
                     address: '123 Đường Lê Lợi, Quận 1, TP.HCM',
@@ -1373,6 +1394,8 @@ const swaggerConfig = {
                       lng: 106.6297,
                     },
                     capacity: 100,
+                    pricing: ['60d0fe4f3b7d1e0015f8c8b2'],
+                    images: ['https://example.com/parking-entrance.jpg'],
                   },
                 },
                 fullParkingLot: {
@@ -1389,6 +1412,7 @@ const swaggerConfig = {
                     images: [
                       'https://example.com/parking-entrance.jpg',
                       'https://example.com/parking-interior.jpg',
+                      'https://example.com/parking-overview.jpg',
                     ],
                   },
                 },
@@ -1427,7 +1451,15 @@ const swaggerConfig = {
                     value: {
                       success: false,
                       message:
-                        'Missing required fields: name, address, coordinates, capacity',
+                        'Missing required fields: name, address, coordinates, capacity, images, pricing',
+                    },
+                  },
+                  missingImages: {
+                    summary: 'Thiếu hoặc ảnh rỗng',
+                    value: {
+                      success: false,
+                      message:
+                        'At least one image is required for the parking lot',
                     },
                   },
                   invalidCoordinates: {

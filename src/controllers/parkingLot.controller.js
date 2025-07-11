@@ -10,11 +10,18 @@ const createParkingLot = async (req, res, next) => {
     const { name, address, coordinates, capacity, pricing, images } = req.body;
 
     // Validation for required fields
-    if (!name || !address || !coordinates || !capacity) {
+    if (!name || !address || !coordinates || !capacity || !images || !pricing) {
       return res.status(400).json({
         success: false,
         message:
-          'Missing required fields: name, address, coordinates, capacity',
+          'Missing required fields: name, address, coordinates, capacity, images, pricing',
+      });
+    }
+
+    if (images.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one image is required for the parking lot',
       });
     }
 
@@ -57,7 +64,7 @@ const createParkingLot = async (req, res, next) => {
       coordinates,
       capacity,
       pricing: pricingArray,
-      images: images || [],
+      images,
       owner: req.user._id,
       availableSlots: capacity, // Will be set by pre-save hook too, but explicit is good
     });
