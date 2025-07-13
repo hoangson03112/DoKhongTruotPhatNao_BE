@@ -20,10 +20,9 @@ const ParkingLotSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
-  // Đã thay đổi availableSlots để có giá trị mặc định và được quản lý qua hook
   availableSlots: {
     type: Number,
-    default: 0, // Giá trị mặc định
+    default: 0,
     min: 0,
   },
   pricing: {

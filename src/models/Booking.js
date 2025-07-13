@@ -1,22 +1,22 @@
-const mongoose = require('mongoose');
-const shortid = require('shortid');
+const mongoose = require("mongoose");
+const shortid = require("shortid");
 
 // Lượt đặt chỗ / để xe (có thể đặt trước)
 const BookingSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   parkingLot: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'ParkingLot',
+    ref: "ParkingLot",
     required: true,
   },
   parkingLocation: {
     type: String,
     trim: true,
-    maxlength: [100, 'Parking location must not exceed 100 characters'],
+    maxlength: [100, "Parking location must not exceed 100 characters"],
   },
   startTime: {
     type: Date,
@@ -32,7 +32,7 @@ const BookingSchema = new mongoose.Schema({
     trim: true,
     match: [
       /^\d{2}[A-Z]{1,2}-\d{4,5}$/,
-      'Invalid car license plate format, e.g. 51F-12345',
+      "Invalid car license plate format, e.g. 51F-12345",
     ],
   },
   bookingCode: {
@@ -42,8 +42,8 @@ const BookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'completed', 'cancelled'],
-    default: 'pending',
+    enum: ["pending", "confirmed", "completed", "cancelled"],
+    default: "pending",
   },
   totalPrice: {
     type: Number,
@@ -66,49 +66,49 @@ const BookingSchema = new mongoose.Schema({
 });
 
 // HOOK PRE-SAVE ĐÃ SỬA ĐỔI ĐỂ PHÙ HỢP VỚI PRICING MODEL CHỈ CÓ 'HOURLY'
-BookingSchema.pre('save', async function (next) {
+BookingSchema.pre("save", async function (next) {
   // Chỉ chạy logic phức tạp khi tạo mới hoặc các trường liên quan đến thời gian thay đổi
   if (
     this.isNew ||
-    this.isModified('startTime') ||
-    this.isModified('timeCheckOut')
+    this.isModified("startTime") ||
+    this.isModified("timeCheckOut")
   ) {
     const parkingLot = await mongoose
-      .model('ParkingLot')
+      .model("ParkingLot")
       .findById(this.parkingLot)
-      .populate('pricing');
+      .populate("pricing");
 
     if (!parkingLot) {
-      throw new Error('Parking lot not found.');
+      throw new Error("Parking lot not found.");
     }
 
     // Kiểm tra số chỗ trống chỉ khi tạo mới booking
     if (this.isNew && parkingLot.availableSlots <= 0) {
-      throw new Error('No available slots in this parking lot');
+      throw new Error("No available slots in this parking lot");
     }
 
     // Kiểm tra startTime không quá xa (tối đa 24 giờ tới)
     const now = new Date();
     if (this.startTime > new Date(now.getTime() + 24 * 60 * 60 * 1000)) {
-      throw new Error('startTime cannot be more than 24 hours in the future');
+      throw new Error("startTime cannot be more than 24 hours in the future");
     }
 
     // Kiểm tra timeCheckOut phải sau startTime và phải tồn tại nếu muốn tính giá
     if (!this.timeCheckOut) {
       throw new Error(
-        'timeCheckOut is required for booking duration calculation.'
+        "timeCheckOut is required for booking duration calculation."
       );
     }
     if (this.startTime >= this.timeCheckOut) {
-      throw new Error('timeCheckOut must be after startTime.');
+      throw new Error("timeCheckOut must be after startTime.");
     }
 
     // Lấy thông tin giá (chỉ có 'hourly' theo Pricing model hiện tại)
     // Giả định chỉ có một cấu hình giá 'hourly' trong mảng pricing hoặc lấy cái đầu tiên
-    const hourlyPricing = parkingLot.pricing.find((p) => p.type === 'hourly');
+    const hourlyPricing = parkingLot.pricing.find((p) => p.type === "hourly");
     if (!hourlyPricing) {
       throw new Error(
-        'Hourly pricing not found for this parking lot. Cannot calculate price.'
+        "Hourly pricing not found for this parking lot. Cannot calculate price."
       );
     }
     const pricePerHour = hourlyPricing.price;
@@ -128,11 +128,11 @@ BookingSchema.pre('save', async function (next) {
 });
 
 // HOOK POST-SAVE CỦA BẠN (Giữ nguyên logic)
-BookingSchema.post('save', async function (doc, next) {
+BookingSchema.post("save", async function (doc, next) {
   // Chỉ tăng slot khi booking bị hủy hoặc hoàn thành
-  if (doc.status === 'cancelled' || doc.status === 'completed') {
+  if (doc.status === "cancelled" || doc.status === "completed") {
     const parkingLot = await mongoose
-      .model('ParkingLot')
+      .model("ParkingLot")
       .findById(doc.parkingLot);
     // Đảm bảo parkingLot tồn tại và availableSlots không vượt quá capacity
     if (parkingLot && parkingLot.availableSlots < parkingLot.capacity) {
@@ -143,4 +143,4 @@ BookingSchema.post('save', async function (doc, next) {
   next();
 });
 
-module.exports = mongoose.model('Booking', BookingSchema, 'bookings');
+module.exports = mongoose.model("Booking", BookingSchema, "bookings");

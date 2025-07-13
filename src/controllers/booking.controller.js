@@ -323,12 +323,16 @@ const checkOutVehicle = async (req, res, next) => {
 
 const getOwnerReservations = async (req, res, next) => {
   try {
-    // Get all bookings for these parking lots
     const reservations = await Booking.find({
       parkingLot: req.params.id,
     })
       .populate("user")
-      .populate("parkingLot")
+      .populate({
+        path: "parkingLot",
+        populate: {
+          path: "pricing",
+        },
+      })
       .sort({ createdAt: -1 });
 
     res.status(200).json({
