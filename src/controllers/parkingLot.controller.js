@@ -1,6 +1,6 @@
-const ParkingLot = require('../models/ParkingLot');
-const User = require('../models/User');
-const Pricing = require('../models/Pricing');
+const ParkingLot = require("../models/ParkingLot");
+const User = require("../models/User");
+const Pricing = require("../models/Pricing");
 
 // @desc    Create a new parking lot
 // @route   POST /api/parkinglots
@@ -14,14 +14,14 @@ const createParkingLot = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message:
-          'Missing required fields: name, address, coordinates, capacity, images, pricing',
+          "Missing required fields: name, address, coordinates, capacity, images, pricing",
       });
     }
 
     if (images.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'At least one image is required for the parking lot',
+        message: "At least one image is required for the parking lot",
       });
     }
 
@@ -29,7 +29,7 @@ const createParkingLot = async (req, res, next) => {
     if (!coordinates.lat || !coordinates.lng) {
       return res.status(400).json({
         success: false,
-        message: 'Coordinates must include lat and lng',
+        message: "Coordinates must include lat and lng",
       });
     }
 
@@ -37,7 +37,7 @@ const createParkingLot = async (req, res, next) => {
     if (capacity <= 0) {
       return res.status(400).json({
         success: false,
-        message: 'Capacity must be a positive number',
+        message: "Capacity must be a positive number",
       });
     }
 
@@ -47,10 +47,10 @@ const createParkingLot = async (req, res, next) => {
       pricingArray = pricing;
     } else {
       // Create or find default hourly pricing
-      let defaultPricing = await Pricing.findOne({ type: 'hourly' });
+      let defaultPricing = await Pricing.findOne({ type: "hourly" });
       if (!defaultPricing) {
         defaultPricing = new Pricing({
-          type: 'hourly',
+          type: "hourly",
           price: 5000, // Default price 5000 VND per hour
         });
         defaultPricing = await defaultPricing.save();
@@ -72,16 +72,16 @@ const createParkingLot = async (req, res, next) => {
     const createdLot = await newParkingLot.save();
 
     // Populate owner and pricing for response
-    await createdLot.populate('owner', 'name email username');
-    await createdLot.populate('pricing');
+    await createdLot.populate("owner", "name email username");
+    await createdLot.populate("pricing");
 
     res.status(201).json({
       success: true,
-      message: 'Parking lot created successfully',
+      message: "Parking lot created successfully",
       data: createdLot,
     });
   } catch (error) {
-    console.error('Error creating parking lot:', error.message);
+    console.error("Error creating parking lot:", error.message);
     next(error);
   }
 };
@@ -95,11 +95,11 @@ const getAllParkingLots = async (req, res, next) => {
     //Lấy ra các bãi đỗ xe đã được xác minh và còn tồn tại, và đã được đưa vào sử dụng (active)
     const parkingLots = await ParkingLot.find({
       isDeleted: false,
-      verificationStatus: 'verified',
-      status: 'active',
+      verificationStatus: "verified",
+      status: "active",
     })
-      .populate('pricing')
-      .populate('owner');
+      .populate("pricing")
+      .populate("owner");
     res.status(200).json(parkingLots);
   } catch (error) {
     next(error);
@@ -111,7 +111,7 @@ const getParkingLotById = async (req, res, next) => {
   try {
     const parkingLot = await ParkingLot.findById(req.params.id);
     if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking Lot not found' });
+      return res.status(404).json({ message: "Parking Lot not found" });
     }
 
     res.status(200).json(parkingLot);
@@ -126,13 +126,13 @@ const getParkingLotDetails = async (req, res, next) => {
     const parkingLot = await ParkingLot.find({
       _id: req.params.id,
       isDeleted: false,
-      verificationStatus: 'verified',
-      status: 'active',
+      verificationStatus: "verified",
+      status: "active",
     })
-      .populate('pricing')
-      .populate('owner');
+      .populate("pricing")
+      .populate("owner");
     if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking Lot not found' });
+      return res.status(404).json({ message: "Parking Lot not found" });
     }
     res.status(200).json(parkingLot[0]);
   } catch (error) {
@@ -148,30 +148,30 @@ const updateParkingLot = async (req, res, next) => {
     const parkingLot = await ParkingLot.findById(req.params.id);
 
     if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking Lot not found' });
+      return res.status(404).json({ message: "Parking Lot not found" });
     }
     // Authorization check: Only owner or admin can update
     if (
       parkingLot.owner.toString() !== req.user._id.toString() &&
-      req.user.role !== 'admin'
+      req.user.role !== "admin"
     ) {
       return res
         .status(403)
-        .json({ message: 'Not authorized to update this parking lot' });
+        .json({ message: "Not authorized to update this parking lot" });
     }
-    if (parkingLot.status === 'active') {
-      parkingLot.status = 'inactive';
+    if (parkingLot.status === "active") {
+      parkingLot.status = "inactive";
     } else {
       //Bonus: Đảm bảo trạng thái verificationStatus đã chuyển thành verified nếu trước đó vẫn là pending
-      if (parkingLot.verificationStatus === 'pending') {
-        parkingLot.verificationStatus = 'verified';
+      if (parkingLot.verificationStatus === "pending") {
+        parkingLot.verificationStatus = "verified";
       }
-      parkingLot.status = 'active';
+      parkingLot.status = "active";
     }
 
     await parkingLot.save();
     res.status(200).json({
-      message: 'Parking lot status updated successfully',
+      message: "Parking lot status updated successfully",
     });
   } catch (error) {
     next(error);
@@ -185,16 +185,16 @@ const softDeleteParkingLot = async (req, res, next) => {
       isDeleted: false,
     });
     if (!parkingLot) {
-      return res.status(404).json({ message: 'Parking Lot not found' });
+      return res.status(404).json({ message: "Parking Lot not found" });
     }
     // Authorization check: Only owner or admin can delete
     if (
       parkingLot.owner.toString() !== req.user._id.toString() &&
-      req.user.role !== 'admin'
+      req.user.role !== "admin"
     ) {
       return res
         .status(403)
-        .json({ message: 'Not authorized to delete this parking lot' });
+        .json({ message: "Not authorized to delete this parking lot" });
     }
 
     parkingLot.isDeleted = true;
@@ -210,7 +210,7 @@ const softDeleteParkingLot = async (req, res, next) => {
     // );
 
     res.status(200).json({
-      message: 'Parking Lot and associated spots soft deleted successfully',
+      message: "Parking Lot and associated spots soft deleted successfully",
     });
   } catch (error) {
     next(error);
@@ -222,11 +222,10 @@ const softDeleteParkingLot = async (req, res, next) => {
 // @access  Private (Parking_Owner)
 const getMyParkingLots = async (req, res, next) => {
   try {
-    console.log('req.user', req.user);
     const parkingLots = await ParkingLot.find({
       owner: req.user._id,
       isDeleted: false,
-    }).populate('pricing');
+    }).populate("pricing");
     res.status(200).json(parkingLots);
   } catch (error) {
     next(error);
