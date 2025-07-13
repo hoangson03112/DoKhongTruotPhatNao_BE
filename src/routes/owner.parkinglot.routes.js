@@ -4,6 +4,7 @@ const {
   createParkingLot,
   updateParkingLot,
   softDeleteParkingLot,
+  updateSlotOfParkingLot,
 } = require("../controllers/parkingLot.controller");
 const { protect, authorizeRoles } = require("../middlewares/auth");
 
@@ -17,6 +18,11 @@ router
 router
   .route("/:id")
   .put(protect, authorizeRoles("parking_owner", "admin"), updateParkingLot)
+  .patch(
+    protect,
+    authorizeRoles("admin", "parking_owner"),
+    updateSlotOfParkingLot
+  )
   .delete(
     protect,
     authorizeRoles("parking_owner", "admin"),

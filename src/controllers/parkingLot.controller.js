@@ -217,6 +217,53 @@ const softDeleteParkingLot = async (req, res, next) => {
   }
 };
 
+const updateSlotOfParkingLot = async (req, res, next) => {
+  try {
+    const { action } = req.body;
+    const parkingLot = await ParkingLot.findById(req.params.id);
+    if (!parkingLot) {
+      return res.status(404).json({ message: "Parking Lot not found" });
+    }
+
+    // Authorization check: Only owner or admin can update
+    if (
+      parkingLot.owner.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this parking lot" });
+    }
+    const availableSlots = parkingLot.availableSlots;
+    const totalSlots = parkingLot.capacity;
+    if (availableSlots === totalSlots && action === "increase") {
+      return res.status(400).json({
+        message: "Cannot increase slots when all slots are available",
+      });
+    }
+    if (availableSlots === 0 && action === "decrease") {
+      return res.status(400).json({
+        message: "Cannot decrease slots when all slots are occupied",
+      });
+    }
+
+    if (action === "increase") {
+      parkingLot.availableSlots += 1;
+    }
+    if (action === "decrease") {
+      parkingLot.availableSlots -= 1;
+    }
+
+    await parkingLot.save();
+
+    res.status(200).json({
+      message: "Parking lot slots updated successfully",
+      data: parkingLot,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 // @desc    Get parking lots owned by the authenticated owner
 // @route   GET /api/parkinglots/my
 // @access  Private (Parking_Owner)
@@ -240,4 +287,5 @@ module.exports = {
   updateParkingLot,
   softDeleteParkingLot,
   getMyParkingLots,
+  updateSlotOfParkingLot,
 };
