@@ -95,8 +95,6 @@ const getAllParkingLots = async (req, res, next) => {
     //Lấy ra các bãi đỗ xe đã được xác minh và còn tồn tại, và đã được đưa vào sử dụng (active)
     const parkingLots = await ParkingLot.find({
       isDeleted: false,
-      verificationStatus: "verified",
-      status: "active",
     })
       .populate("pricing")
       .populate("owner");
