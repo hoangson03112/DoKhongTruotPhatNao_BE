@@ -218,7 +218,9 @@ const softDeleteParkingLot = async (req, res, next) => {
 const updateSlotOfParkingLot = async (req, res, next) => {
   try {
     const { action } = req.body;
-    const parkingLot = await ParkingLot.findById(req.params.id);
+    const parkingLot = await ParkingLot.findById(req.params.id)
+      .populate("owner")
+      .populate("pricing");
     if (!parkingLot) {
       return res.status(404).json({ message: "Parking Lot not found" });
     }
