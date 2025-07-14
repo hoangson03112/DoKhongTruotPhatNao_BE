@@ -325,6 +325,7 @@ const getOwnerReservations = async (req, res, next) => {
   try {
     const reservations = await Booking.find({
       parkingLot: req.params.id,
+      status: { $in: ["pending", "confirmed"] },
     })
       .populate("user")
       .populate({
