@@ -23,12 +23,10 @@ const BookingSchema = new mongoose.Schema({
     required: true,
   },
   timeCheckOut: {
-    // same with endTime
     type: Date,
   },
   licensePlate: {
     type: String,
-    required: true,
     trim: true,
     match: [
       /^\d{2}[A-Z]{1,2}-\d{4,5}$/,
@@ -42,7 +40,7 @@ const BookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "confirmed", "completed", "cancelled"],
+    enum: ["pending", "confirmed", "completed", "cancelled", "external"],
     default: "pending",
   },
   totalPrice: {
@@ -67,7 +65,10 @@ const BookingSchema = new mongoose.Schema({
 
 // HOOK PRE-SAVE ĐÃ SỬA ĐỔI ĐỂ PHÙ HỢP VỚI PRICING MODEL CHỈ CÓ 'HOURLY'
 BookingSchema.pre("save", async function (next) {
-  // Chỉ chạy logic phức tạp khi tạo mới hoặc các trường liên quan đến thời gian thay đổi
+  if (this.status === "external") {
+    return next();
+  }
+
   if (
     this.isNew ||
     this.isModified("startTime") ||

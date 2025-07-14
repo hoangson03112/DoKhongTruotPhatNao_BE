@@ -1,6 +1,7 @@
 const ParkingLot = require("../models/ParkingLot");
 const User = require("../models/User");
 const Pricing = require("../models/Pricing");
+const Booking = require("../models/Booking");
 
 // @desc    Create a new parking lot
 // @route   POST /api/parkinglots
@@ -214,6 +215,7 @@ const softDeleteParkingLot = async (req, res, next) => {
     next(error);
   }
 };
+// @desc    Update available slots of a parking lot
 
 const updateSlotOfParkingLot = async (req, res, next) => {
   try {
@@ -221,49 +223,76 @@ const updateSlotOfParkingLot = async (req, res, next) => {
     const parkingLot = await ParkingLot.findById(req.params.id)
       .populate("owner")
       .populate("pricing");
+
     if (!parkingLot) {
       return res.status(404).json({ message: "Parking Lot not found" });
     }
 
-    // Authorization check: Only owner or admin can update
-    if (
-      parkingLot.owner.toString() !== req.user._id.toString() &&
-      req.user.role !== "admin"
-    ) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to update this parking lot" });
-    }
-    const availableSlots = parkingLot.availableSlots;
-    const totalSlots = parkingLot.capacity;
-    if (availableSlots === totalSlots && action === "increase") {
-      return res.status(400).json({
-        message: "Cannot increase slots when all slots are available",
-      });
-    }
-    if (availableSlots === 0 && action === "decrease") {
-      return res.status(400).json({
-        message: "Cannot decrease slots when all slots are occupied",
-      });
-    }
+    // Khi xe vào bãi
+    if (action === "in") {
+      if (parkingLot.availableSlots === 0) {
+        return res
+          .status(400)
+          .json({ message: "No available slots to park the car" });
+      }
 
-    if (action === "increase") {
-      parkingLot.availableSlots += 1;
-    }
-    if (action === "decrease") {
       parkingLot.availableSlots -= 1;
+      const now = new Date();
+      const checkOut = new Date(now.getTime() + 60 * 1000);
+
+      const fakeBooking = await Booking.create({
+        user: req.user._id,
+        parkingLot: parkingLot._id,
+        parkingLocation: "manual-entry",
+        status: "external",
+        startTime: now,
+        timeCheckOut: checkOut,
+        licensePlate: `51F-12345`,
+      });
+
+      await parkingLot.save();
+
+      return res.status(200).json({
+        message: "Manual parking entry recorded",
+        data: {
+          parkingLot,
+          bookingId: fakeBooking._id,
+        },
+      });
     }
 
-    await parkingLot.save();
+    // Khi xe rời bãi
+    if (action === "out") {
+      if (parkingLot.availableSlots === parkingLot.capacity) {
+        return res.status(400).json({ message: "All slots already available" });
+      }
 
-    res.status(200).json({
-      message: "Parking lot slots updated successfully",
-      data: parkingLot,
-    });
+      // Tìm booking ảo gần nhất
+      const fakeBooking = await Booking.findOne({
+        parkingLot: parkingLot._id,
+        status: "external",
+      }).sort({ createdAt: -1 });
+
+      if (!fakeBooking) {
+        return res.status(404).json({ message: "No external booking found" });
+      }
+
+      parkingLot.availableSlots += 1;
+      await fakeBooking.deleteOne();
+      await parkingLot.save();
+
+      return res.status(200).json({
+        message: "Manual car exit processed",
+        data: parkingLot,
+      });
+    }
+
+    res.status(400).json({ message: "Invalid action" });
   } catch (error) {
     next(error);
   }
 };
+
 // @desc    Get parking lots owned by the authenticated owner
 // @route   GET /api/parkinglots/my
 // @access  Private (Parking_Owner)
